@@ -1,0 +1,69 @@
+{
+ "turn": 7,
+ "turns": 18,
+ "status": "Fuel 44 | Traits 1/3 SEQ | Line F B G L L G . . . . . . | Labs on 2",
+ "events": [
+  "Generator bolted into slot 6 (powered).",
+  "Generators now 2: burn 4 a night.",
+  "Hand: Lab, Lab, Generator.",
+  "Gunnar is quiet. The calving comes at the end of turn 9.",
+  "Burned 4 fuel, guests paid 3. Fuel 44.",
+  "A quiet night. The ghosts play cards.",
+  "Powered: 2 Lab, 1 Freezer, 0 Radio, 1 Bunk."
+ ],
+ "visible": {
+  "fuel": 44,
+  "slots": [
+   "F",
+   "B",
+   "G",
+   "L",
+   "L",
+   "G",
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "hand": [
+   "L",
+   "L",
+   "G"
+  ],
+  "traits": [
+   "SEQ"
+  ],
+  "known": {
+   "1": 6,
+   "2": 9,
+   "3": 2
+  },
+  "groan": null,
+  "streak": 0,
+  "seance": false,
+  "hunker": false,
+  "escaped": false,
+  "_seed": 213891
+ },
+ "options": [
+  {
+   "id": "place_G",
+   "label": "Place a Generator in slot 7"
+  },
+  {
+   "id": "place_L",
+   "label": "Place a Lab in slot 7"
+  },
+  {
+   "id": "ask",
+   "label": "Ask the ghosts about the next two unrevealed slots (2 fuel)"
+  },
+  {
+   "id": "hold",
+   "label": "Hunker down (burn 1 less fuel tonight; redraw the hand)"
+  }
+ ],
+ "ended": null
+}

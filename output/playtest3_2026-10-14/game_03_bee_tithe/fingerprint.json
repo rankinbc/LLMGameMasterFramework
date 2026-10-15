@@ -1,0 +1,42 @@
+{
+ "id": "p3_game_03_bee_tithe",
+ "title": "The Bee Tithe",
+ "date": "2026-10-14",
+ "result": "win",
+ "turns": 16,
+ "turn_budget": 16,
+ "rolls": {
+  "FORM": 1,
+  "SET": 60,
+  "ROLE": 34,
+  "LOOP": 12,
+  "CLOCK": 10,
+  "TWIST": 24,
+  "WIN": 18,
+  "MAP": 8,
+  "TONE": 5,
+  "CURRENCY": 6
+ },
+ "traits": {
+  "primary_bucket": "light",
+  "tracked_count": "3",
+  "rival_type": "hunter",
+  "rival_tell": "hidden",
+  "win_shape": "threshold",
+  "clock_shape": "decay",
+  "opening_shape": "build",
+  "ending_shape": "photo-finish",
+  "midpoint_event": "unlock",
+  "player_frame": "negotiator",
+  "decision_unit": "route",
+  "setting_family": "nature",
+  "turn_band": "mid"
+ },
+ "primary_number": "Light",
+ "evidence": {
+  "tracked_count": "Status line carried Light, Approval, a Mood board and a Sun board; I intended 2 but the weather board is a third tracked list",
+  "rival_tell": "The front's hunting rule (sunniest) was inferred from where strikes fell on turns 1 and 2, then predictable",
+  "ending_shape": "Approval sat at 39 to 40 against a goal of 40 from turn 13 to 16",
+  "midpoint_event": "Favors unlocked on turn 8 and became the light source; the storm doubled strikes on turn 9"
+ }
+}

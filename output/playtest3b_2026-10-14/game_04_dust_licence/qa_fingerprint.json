@@ -1,0 +1,41 @@
+{
+  "id": "game_04_dust_licence",
+  "title": "Dust Licence",
+  "date": "2026-10-14",
+  "result": "win",
+  "turns": 16,
+  "turn_budget": 16,
+  "rolls": {
+    "FORM": 4,
+    "SET": 21,
+    "ROLE": 31,
+    "LOOP": 16,
+    "CLOCK": 18,
+    "TWIST": 45,
+    "WIN": 6,
+    "MAP": 2,
+    "TONE": 8,
+    "CURRENCY": 12
+  },
+  "traits": {
+    "primary_bucket": "standing",
+    "tracked_count": "2",
+    "rival_type": "bidder",
+    "rival_tell": "hidden",
+    "win_shape": "hold",
+    "clock_shape": "upkeep",
+    "opening_shape": "build",
+    "ending_shape": "final-roll",
+    "midpoint_event": "rule-change",
+    "player_frame": "manager",
+    "decision_unit": "bid",
+    "setting_family": "scifi",
+    "turn_band": "mid"
+  },
+  "primary_number": "Standing",
+  "actions": [
+    "bid",
+    "sit",
+    "audit"
+  ]
+}

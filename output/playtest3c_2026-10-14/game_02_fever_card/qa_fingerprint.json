@@ -1,0 +1,26 @@
+{
+  "id": "game_02_fever_card",
+  "title": "Fever Card",
+  "date": "2026-10-14",
+  "result": "win",
+  "turns": 14,
+  "turn_budget": 16,
+  "rolls": {"FORM": 15, "SET": 32, "ROLE": 51, "LOOP": 32, "CLOCK": 8, "TWIST": 39, "WIN": 5, "MAP": 14, "TONE": 10, "CURRENCY": 7, "TRACKED": 3},
+  "traits": {
+    "primary_bucket": "slots",
+    "tracked_count": "3",
+    "rival_type": "hunter",
+    "rival_tell": "before",
+    "win_shape": "build",
+    "clock_shape": "deadline",
+    "opening_shape": "build",
+    "ending_shape": "flat",
+    "midpoint_event": "unlock",
+    "player_frame": "manager",
+    "decision_unit": "assign",
+    "setting_family": "nature",
+    "turn_band": "mid"
+  },
+  "primary_number": "Slots",
+  "actions": ["wall", "sweep", "lance", "stoke", "hold"]
+}

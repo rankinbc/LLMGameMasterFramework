@@ -1,0 +1,35 @@
+{
+ "games": 60,
+ "baseline_win": 0.45,
+ "noise_se": 0.09,
+ "actions": [
+  {
+   "action": "book",
+   "win_without": 0.0,
+   "delta": 0.45,
+   "verdict": "needed"
+  },
+  {
+   "action": "main",
+   "win_without": 0.03,
+   "delta": 0.42,
+   "verdict": "needed"
+  },
+  {
+   "action": "hustle",
+   "win_without": 0.45,
+   "delta": 0.0,
+   "verdict": "unproven"
+  },
+  {
+   "action": "block",
+   "win_without": 0.0,
+   "delta": 0.45,
+   "verdict": "needed"
+  }
+ ],
+ "warnings": [
+  "ACTION: banning hustle changes the win rate by +0.00; it may be dead or dominated (unless it is a decoy on purpose)"
+ ],
+ "note": "Differences under about 2 x noise_se are not distinguishable from luck. Treat verdicts as leads, not proof."
+}

@@ -1,0 +1,52 @@
+{
+ "id": "p3b_02_mirror_migration",
+ "date": "2026-10-14",
+ "title": "Mirror Migration",
+ "result": "win",
+ "turns": 16,
+ "turn_budget": 16,
+ "rolls": {
+  "FORM": 3,
+  "SET": 57,
+  "ROLE": 3,
+  "LOOP": 35,
+  "CLOCK": 22,
+  "TWIST": 6,
+  "WIN": 5,
+  "MAP": 10,
+  "TONE": 10,
+  "CURRENCY": 12
+ },
+ "traits": {
+  "primary_bucket": "standing",
+  "tracked_count": "2",
+  "rival_type": "counter",
+  "rival_tell": "before",
+  "win_shape": "build",
+  "clock_shape": "deadline",
+  "opening_shape": "build",
+  "ending_shape": "final-roll",
+  "midpoint_event": "rule-change",
+  "player_frame": "operator",
+  "decision_unit": "place",
+  "setting_family": "nature",
+  "turn_band": "mid"
+ },
+ "primary_number": "Standing",
+ "actions": [
+  "den",
+  "snare",
+  "run",
+  "writ"
+ ],
+ "evidence": {
+  "rival_type": "The party crosses the file opposite the player's latest build, so it reacts to the last move.",
+  "rival_tell": "Two weeks of parties are shown with strength before the player acts; the file is derived from the mirror rule.",
+  "win_shape": "Raise a den on all five files, then hold them through the Great Crossing with 18 Standing.",
+  "clock_shape": "Fixed 16-week deadline; the week-9 step (tithe 2, +1 strength) is a one-off, not a per-turn growth.",
+  "ending_shape": "Designed as a final roll, but in two of three games the Writ or a spare 27+ Standing made the last week a near-certain win.",
+  "decision_unit": "Every build or snare takes a file letter; run and writ take none.",
+  "setting_family": "Dens, herds, pilgrims and a stampede on a chessboard; nature documentary tone.",
+  "player_frame": "A smuggler pawn who builds dens and runs contraband; operator rather than manager."
+ }
+}

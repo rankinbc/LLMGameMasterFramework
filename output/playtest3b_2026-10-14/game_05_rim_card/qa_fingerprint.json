@@ -1,0 +1,43 @@
+{
+ "id": "game_05_rim_card",
+ "title": "Rim Card",
+ "date": "2026-10-14",
+ "result": "win",
+ "result_note": "careful seed 101 won 62 v 56; of 6 games played 1 win and 5 losses (greedy 202, hoard 303, block-spam 404, careful 505 and 606 both lost 63 v 64)",
+ "turns": 20,
+ "turn_budget": 20,
+ "rolls": {
+  "FORM": 12,
+  "SET": 1,
+  "ROLE": 51,
+  "LOOP": 31,
+  "CLOCK": 16,
+  "TWIST": 35,
+  "WIN": 18,
+  "MAP": 2,
+  "TONE": 11,
+  "CURRENCY": 9
+ },
+ "traits": {
+  "primary_bucket": "cash",
+  "tracked_count": "2",
+  "rival_type": "racer",
+  "rival_tell": "hidden",
+  "win_shape": "outscore",
+  "clock_shape": "escalation",
+  "opening_shape": "build",
+  "ending_shape": "photo-finish",
+  "midpoint_event": "reveal",
+  "player_frame": "manager",
+  "decision_unit": "place",
+  "setting_family": "scifi",
+  "turn_band": "long"
+ },
+ "primary_number": "cash",
+ "actions": [
+  "book",
+  "main",
+  "hustle",
+  "block"
+ ]
+}

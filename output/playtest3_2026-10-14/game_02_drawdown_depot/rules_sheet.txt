@@ -1,0 +1,8 @@
+1. You run 3 night buses for the Low Ward, each starting on the Street, Layer 1 or Layer 2 by lot. Each night take one action: move a bus to the Street or an open layer, shore a layer, sink the well, or hold. A bus you move pays nothing tonight.
+2. Working buses pay beds overnight: Street +1, Layer 1 +2, Layer 2 +3, Layer 3 +5. Below the Street a bus rolls a d6 and stalls (no pay) on 1 or less on Layer 1, 2 on Layer 2, 3 on Layer 3.
+3. The water table starts at 16 and drops 1 each dawn. Layers 1 and 2 are open from the start; Layer 3 opens at table 10 or below.
+4. The Ward loses 2 beds a night. At table 8 or below its wells fail and it loses 5 a night instead.
+5. After the runs the Assessor works a hidden cycle, repeating in a fixed order you infer from past strikes: 2 nights on the layer whose buses paid most in total tonight, 1 on its haunt (a fixed hidden layer from the Street to Layer 2), 1 at home.
+6. A strike impounds one bus there: it pays nothing tonight, stays out 1 more night(s) per the regulations, then returns to the Street. About 8% of nights the Assessor is at recess and does not strike. You learn where it struck only afterward.
+7. Purchases: shore a layer once for 1 bed (its stall number drops by 1); sink a well once, after the wells fail, for 6 beds (the wells then cost 2 less a night).
+8. The Ward starts with 14 beds and your creditor holds the lien on it: win with at least 14 beds after night 16; lose the moment beds drop below 3.

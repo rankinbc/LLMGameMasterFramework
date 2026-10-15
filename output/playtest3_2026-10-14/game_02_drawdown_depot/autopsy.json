@@ -1,0 +1,184 @@
+{
+ "result": "loss",
+ "reason": "the audit found 6 beds, short of 14",
+ "turns_played": 16,
+ "hard_turns": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14
+ ],
+ "hard_share": 0.88,
+ "decided_at_turn": 16,
+ "biggest_swing": {
+  "turn": 2,
+  "potential_before": 0.57,
+  "potential_after": 0.35,
+  "picked": "Move a bus from the Street to Layer 1 (it pays nothing tonight)",
+  "best_option": "Move a bus from Layer 1 to Layer 2 (it pays nothing tonight)",
+  "events": [
+   "Form 11: a bus is reassigned from the Street to Layer 1. It pays nothing tonight.",
+   "Layer 1 bus: roll 1 (need 2+) L1 fail. Stalled, no pay.",
+   "Layer 2 bus: roll 4 (need 3+) L2 success. Pays 3.",
+   "The Assessor visits its haunt: Layer 1. A bus is impounded for 1 more night.",
+   "The runs bring in 3 beds.",
+   "The Ward loses 2 beds."
+  ]
+ },
+ "top_regrets": [
+  {
+   "turn": 2,
+   "picked": "Move a bus from the Street to Layer 1 (it pays nothing tonight)",
+   "better": "Move a bus from Layer 1 to Layer 2 (it pays nothing tonight)",
+   "cost": 0.33
+  },
+  {
+   "turn": 6,
+   "picked": "Move a bus from the Street to Layer 2 (it pays nothing tonight)",
+   "better": "Hold the roster and file the usual forms",
+   "cost": 0.15
+  }
+ ],
+ "flags": [],
+ "table": [
+  {
+   "turn": 1,
+   "best": 0.675,
+   "worst": 0.025,
+   "spread": 0.65,
+   "picked_rate": 0.57,
+   "regret": 0.0
+  },
+  {
+   "turn": 2,
+   "best": 0.575,
+   "worst": 0.1,
+   "spread": 0.47,
+   "picked_rate": 0.25,
+   "regret": 0.33
+  },
+  {
+   "turn": 3,
+   "best": 0.35,
+   "worst": 0.05,
+   "spread": 0.3,
+   "picked_rate": 0.35,
+   "regret": 0.0
+  },
+  {
+   "turn": 4,
+   "best": 0.3,
+   "worst": 0.025,
+   "spread": 0.28,
+   "picked_rate": 0.3,
+   "regret": 0.0
+  },
+  {
+   "turn": 5,
+   "best": 0.3,
+   "worst": 0.0,
+   "spread": 0.3,
+   "picked_rate": 0.3,
+   "regret": 0.0
+  },
+  {
+   "turn": 6,
+   "best": 0.3,
+   "worst": 0.025,
+   "spread": 0.28,
+   "picked_rate": 0.15,
+   "regret": 0.15
+  },
+  {
+   "turn": 7,
+   "best": 0.375,
+   "worst": 0.05,
+   "spread": 0.33,
+   "picked_rate": 0.35,
+   "regret": 0.0
+  },
+  {
+   "turn": 8,
+   "best": 0.425,
+   "worst": 0.0,
+   "spread": 0.42,
+   "picked_rate": 0.38,
+   "regret": 0.0
+  },
+  {
+   "turn": 9,
+   "best": 0.45,
+   "worst": 0.0,
+   "spread": 0.45,
+   "picked_rate": 0.35,
+   "regret": 0.0
+  },
+  {
+   "turn": 10,
+   "best": 0.4,
+   "worst": 0.0,
+   "spread": 0.4,
+   "picked_rate": 0.4,
+   "regret": 0.0
+  },
+  {
+   "turn": 11,
+   "best": 0.325,
+   "worst": 0.0,
+   "spread": 0.33,
+   "picked_rate": 0.28,
+   "regret": 0.0
+  },
+  {
+   "turn": 12,
+   "best": 0.225,
+   "worst": 0.025,
+   "spread": 0.2,
+   "picked_rate": 0.23,
+   "regret": 0.0
+  },
+  {
+   "turn": 13,
+   "best": 0.25,
+   "worst": 0.0,
+   "spread": 0.25,
+   "picked_rate": 0.25,
+   "regret": 0.0
+  },
+  {
+   "turn": 14,
+   "best": 0.25,
+   "worst": 0.0,
+   "spread": 0.25,
+   "picked_rate": 0.25,
+   "regret": 0.0
+  },
+  {
+   "turn": 15,
+   "best": 0.075,
+   "worst": 0.0,
+   "spread": 0.0,
+   "picked_rate": 0.07,
+   "regret": 0.0
+  },
+  {
+   "turn": 16,
+   "best": 0.0,
+   "worst": 0.0,
+   "spread": 0.0,
+   "picked_rate": 0.0,
+   "regret": 0.0
+  }
+ ],
+ "note": "best and worst are win rates of the best and worst legal option at that turn, from 'k' paired rollouts with sensible play after"
+}

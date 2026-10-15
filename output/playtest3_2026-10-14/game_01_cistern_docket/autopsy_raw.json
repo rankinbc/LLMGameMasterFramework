@@ -1,0 +1,115 @@
+{
+ "result": "win",
+ "reason": "Dross was the culprit and the pieces held",
+ "turns_played": 10,
+ "hard_turns": [
+  3,
+  4,
+  5,
+  7,
+  8,
+  9,
+  10
+ ],
+ "hard_share": 0.7,
+ "decided_at_turn": null,
+ "biggest_swing": {
+  "turn": 2,
+  "potential_before": 0.28,
+  "potential_after": 0.62,
+  "picked": "Cafe desk: gossip over report 2 (+1 Evidence)",
+  "best_option": "Cafe desk: gossip over report 2 (+1 Evidence)",
+  "events": [
+   "Gossip at the cafe over report 2 (Kitchens, names Dross). Evidence +1.",
+   "Report 3 arrives from the Kitchens, naming Haskett.",
+   "Report 4 arrives from the Tower, naming Dross.",
+   "The siphon strikes the Library cistern (waiting reports: Library 0, Kitchens 1, Tower 1). Water -2.",
+   "The table falls. Water -1."
+  ]
+ },
+ "top_regrets": [],
+ "flags": [],
+ "table": [
+  {
+   "turn": 1,
+   "best": 0.55,
+   "worst": 0.45,
+   "spread": 0.0,
+   "picked_rate": 0.45,
+   "regret": 0.0
+  },
+  {
+   "turn": 2,
+   "best": 0.275,
+   "worst": 0.275,
+   "spread": 0.0,
+   "picked_rate": 0.28,
+   "regret": 0.0
+  },
+  {
+   "turn": 3,
+   "best": 0.625,
+   "worst": 0.3,
+   "spread": 0.33,
+   "picked_rate": 0.53,
+   "regret": 0.0
+  },
+  {
+   "turn": 4,
+   "best": 0.65,
+   "worst": 0.05,
+   "spread": 0.6,
+   "picked_rate": 0.65,
+   "regret": 0.0
+  },
+  {
+   "turn": 5,
+   "best": 0.875,
+   "worst": 0.05,
+   "spread": 0.82,
+   "picked_rate": 0.88,
+   "regret": 0.0
+  },
+  {
+   "turn": 6,
+   "best": 0.95,
+   "worst": 0.95,
+   "spread": 0.0,
+   "picked_rate": 0.95,
+   "regret": 0.0
+  },
+  {
+   "turn": 7,
+   "best": 1.0,
+   "worst": 0.425,
+   "spread": 0.57,
+   "picked_rate": 1.0,
+   "regret": 0.0
+  },
+  {
+   "turn": 8,
+   "best": 1.0,
+   "worst": 0.175,
+   "spread": 0.82,
+   "picked_rate": 1.0,
+   "regret": 0.0
+  },
+  {
+   "turn": 9,
+   "best": 1.0,
+   "worst": 0.0,
+   "spread": 1.0,
+   "picked_rate": 1.0,
+   "regret": 0.0
+  },
+  {
+   "turn": 10,
+   "best": 1.0,
+   "worst": 0.0,
+   "spread": 1.0,
+   "picked_rate": 1.0,
+   "regret": 0.0
+  }
+ ],
+ "note": "best and worst are win rates of the best and worst legal option at that turn, from 'k' paired rollouts with sensible play after"
+}

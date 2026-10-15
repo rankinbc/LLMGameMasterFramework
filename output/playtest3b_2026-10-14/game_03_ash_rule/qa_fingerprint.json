@@ -1,0 +1,27 @@
+{
+  "id": "game_03_ash_rule",
+  "title": "Ash Rule",
+  "date": "2026-10-14",
+  "result": "loss",
+  "turns": 16,
+  "turn_budget": 16,
+  "rolls": {"FORM": 15, "SET": 22, "ROLE": 46, "LOOP": 34, "CLOCK": 1, "TWIST": 2, "WIN": 9, "MAP": 9, "TONE": 1, "CURRENCY": 5},
+  "traits": {
+    "primary_bucket": "stock",
+    "tracked_count": "2",
+    "rival_type": "counter",
+    "rival_tell": "after",
+    "win_shape": "build",
+    "clock_shape": "upkeep",
+    "opening_shape": "scout",
+    "ending_shape": "final-roll",
+    "midpoint_event": "unlock",
+    "player_frame": "operator",
+    "decision_unit": "assign",
+    "setting_family": "scifi",
+    "turn_band": "mid"
+  },
+  "primary_number": "stock",
+  "actions": ["write", "raise", "vigil", "favour"],
+  "qa_notes": "result is the seed 101 careful game; other full games: seed 202 starve loss day 12, seed 303 starve loss day 6, seed 13 loss (vigil miss day 14), seed 14 win day 13, seed 16 win day 16."
+}

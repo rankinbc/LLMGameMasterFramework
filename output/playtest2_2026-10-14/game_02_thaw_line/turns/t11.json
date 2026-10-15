@@ -1,0 +1,75 @@
+{
+ "turn": 12,
+ "turns": 18,
+ "status": "Fuel 42 | Traits 2/3 SEQ/ALIVE | Line f b ~ L L! G L F . ~ . . | Labs on 3",
+ "events": [
+  "roll 4 (need 3+) ALIVE success. ALIVE confirmed. Traits 2/3.",
+  "Slot 3 (Generator) goes under.",
+  "The ice groans under slot 5 (Lab). It goes at the end of this turn.",
+  "Burned 3 fuel, guests paid 0. Fuel 37.",
+  "Supply drop: 5 drums land on the ice (42).",
+  "Powered: 3 Lab, 1 Freezer, 0 Radio, 0 Bunk."
+ ],
+ "visible": {
+  "fuel": 42,
+  "slots": [
+   "F",
+   "B",
+   "~",
+   "L",
+   "L",
+   "G",
+   "L",
+   "F",
+   null,
+   "~",
+   null,
+   null
+  ],
+  "hand": [
+   "L",
+   "G",
+   "L"
+  ],
+  "traits": [
+   "SEQ",
+   "ALIVE"
+  ],
+  "known": {
+   "1": 6,
+   "2": 9,
+   "3": 2,
+   "4": 12,
+   "5": 3
+  },
+  "groan": 5,
+  "streak": 0,
+  "seance": false,
+  "hunker": false,
+  "escaped": false,
+  "_seed": 213891
+ },
+ "options": [
+  {
+   "id": "place_G",
+   "label": "Place a Generator in slot 9"
+  },
+  {
+   "id": "place_L",
+   "label": "Place a Lab in slot 9"
+  },
+  {
+   "id": "trial_stable",
+   "label": "Run the STABLE trial (3 fuel, roll d6 need 3+)"
+  },
+  {
+   "id": "swap",
+   "label": "Swap the Lab in slot 5 with the Generator in slot 6 (2 fuel)"
+  },
+  {
+   "id": "hold",
+   "label": "Hunker down (burn 1 less fuel tonight; redraw the hand)"
+  }
+ ],
+ "ended": null
+}

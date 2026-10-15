@@ -1,0 +1,41 @@
+{
+  "id": "pt3_01_cistern_docket",
+  "date": "2026-10-14",
+  "title": "Cistern Docket",
+  "result": "win",
+  "turns": 10,
+  "turn_budget": 13,
+  "rolls": {
+    "FORM": 17,
+    "SET": 30,
+    "ROLE": 45,
+    "LOOP": 8,
+    "CLOCK": 11,
+    "TWIST": 30,
+    "WIN": 15,
+    "MAP": 7,
+    "TONE": 6,
+    "CURRENCY": 11
+  },
+  "traits": {
+    "primary_bucket": "evidence",
+    "tracked_count": "2",
+    "rival_type": "marcher",
+    "rival_tell": "after",
+    "win_shape": "deduce",
+    "clock_shape": "decay",
+    "opening_shape": "stock-up",
+    "ending_shape": "cliff",
+    "midpoint_event": "rule-change",
+    "player_frame": "investigator",
+    "decision_unit": "assign",
+    "setting_family": "fantasy",
+    "turn_band": "short"
+  },
+  "primary_number": "Evidence",
+  "evidence": {
+    "rival_type": "Siphon stepped Tower, Library, Kitchens round the ring one isle a night; stakeouts on nights 8 and 9 caught it twice",
+    "ending_shape": "Named Dross on night 10 at Water 3 with two glimpses narrowing the field to Dross and Tolliver; one right-or-wrong name decided it",
+    "opening_shape": "Nights 1 to 4 worked reports for Evidence and bound the ledger"
+  }
+}

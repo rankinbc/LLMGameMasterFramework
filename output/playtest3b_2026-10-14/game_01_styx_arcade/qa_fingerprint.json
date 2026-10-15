@@ -1,0 +1,26 @@
+{
+  "id": "game_01_styx_arcade",
+  "title": "Styx Arcade",
+  "date": "2026-10-14",
+  "result": "win",
+  "turns": 12,
+  "turn_budget": 12,
+  "rolls": {"FORM": 5, "SET": 50, "ROLE": 3, "LOOP": 16, "CLOCK": 22, "TWIST": 18, "WIN": 15, "MAP": 10, "TONE": 5, "CURRENCY": 11},
+  "traits": {
+    "primary_bucket": "evidence",
+    "tracked_count": "2",
+    "rival_type": "saboteur",
+    "rival_tell": "before",
+    "win_shape": "deduce",
+    "clock_shape": "deadline",
+    "opening_shape": "stock-up",
+    "ending_shape": "cliff",
+    "midpoint_event": "unlock",
+    "player_frame": "investigator",
+    "decision_unit": "allocate",
+    "setting_family": "fantasy",
+    "turn_band": "short"
+  },
+  "primary_number": "hearsay",
+  "actions": ["run", "exchange", "accuse", "ledger"]
+}

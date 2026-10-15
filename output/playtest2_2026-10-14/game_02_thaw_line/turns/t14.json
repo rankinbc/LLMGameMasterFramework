@@ -1,0 +1,53 @@
+{
+ "turn": 14,
+ "turns": 18,
+ "status": "Fuel 26 | Traits 3/3 SEQ/ALIVE/STABLE | Line f b ~ L ~ G L! F . ~ . ~ | Labs on 2",
+ "events": [
+  "roll 4 (need 4+) plane success. The Twin Otter lands on the last firm ice. Specimen aboard."
+ ],
+ "visible": {
+  "fuel": 26,
+  "slots": [
+   "F",
+   "B",
+   "~",
+   "L",
+   "~",
+   "G",
+   "L",
+   "F",
+   null,
+   "~",
+   null,
+   "~"
+  ],
+  "hand": [
+   "L",
+   "G",
+   "L"
+  ],
+  "traits": [
+   "SEQ",
+   "ALIVE",
+   "STABLE"
+  ],
+  "known": {
+   "1": 6,
+   "2": 9,
+   "3": 2,
+   "4": 12,
+   "5": 3
+  },
+  "groan": 7,
+  "streak": 0,
+  "seance": false,
+  "hunker": false,
+  "escaped": true,
+  "_seed": 213891
+ },
+ "options": [],
+ "ended": {
+  "result": "win",
+  "reason": "flew out with 3 traits on turn 14, fuel 26"
+ }
+}

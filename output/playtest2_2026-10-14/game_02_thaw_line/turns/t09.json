@@ -1,0 +1,74 @@
+{
+ "turn": 10,
+ "turns": 18,
+ "status": "Fuel 47 | Traits 1/3 SEQ | Line F B G L L G L F . .! . . | Labs on 3",
+ "events": [
+  "The crew of '71 confer: slot 4 outlasts the plane; slot 5 goes under at the end of turn 12 (3rd to drown).",
+  "Gunnar calves with a sound like furniture. The core bay thaws: the Specimen is awake. ALIVE and STABLE trials are open.",
+  "The ice groans under slot 10 (nothing). It goes at the end of this turn.",
+  "Burned 4 fuel, guests paid 3. Fuel 44.",
+  "A charter of glaciologists checks in and pays in diesel: +3 fuel (47).",
+  "Powered: 3 Lab, 2 Freezer, 0 Radio, 1 Bunk."
+ ],
+ "visible": {
+  "fuel": 47,
+  "slots": [
+   "F",
+   "B",
+   "G",
+   "L",
+   "L",
+   "G",
+   "L",
+   "F",
+   null,
+   null,
+   null,
+   null
+  ],
+  "hand": [
+   "L",
+   "G",
+   "L"
+  ],
+  "traits": [
+   "SEQ"
+  ],
+  "known": {
+   "1": 6,
+   "2": 9,
+   "3": 2,
+   "4": 12,
+   "5": 3
+  },
+  "groan": 10,
+  "streak": 0,
+  "seance": false,
+  "hunker": false,
+  "escaped": false,
+  "_seed": 213891
+ },
+ "options": [
+  {
+   "id": "place_G",
+   "label": "Place a Generator in slot 9"
+  },
+  {
+   "id": "place_L",
+   "label": "Place a Lab in slot 9"
+  },
+  {
+   "id": "trial_alive",
+   "label": "Run the ALIVE trial (3 fuel, roll d6 need 3+)"
+  },
+  {
+   "id": "trial_stable",
+   "label": "Run the STABLE trial (3 fuel, roll d6 need 3+)"
+  },
+  {
+   "id": "hold",
+   "label": "Hunker down (burn 1 less fuel tonight; redraw the hand)"
+  }
+ ],
+ "ended": null
+}

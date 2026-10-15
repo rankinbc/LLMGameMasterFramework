@@ -1,0 +1,63 @@
+{
+ "verdict": "FLAGS",
+ "flags": [
+  "heuristic: TOO EASY: sensible play wins over 45%",
+  "RULETEST: rule 8 (main event) failed: a favourite main event adds FAV too: got 12, expected 17"
+ ],
+ "warnings": [
+  "SHEET: rule 5 has 37 words; aim for 36 or fewer, about two mechanics a line",
+  "SHEET: rule 8 has 37 words; aim for 36 or fewer, about two mechanics a line",
+  "FORCED: 19% of turns offered a single legal option; those turns are not decisions",
+  "TAG: idle_block fires in 0% of heuristic games (rare; fine for a twist, a problem for a core rule)",
+  "BAND: look-ahead wins 97%, over 90%; the best line is too obvious",
+  "TESTSTRENGTH: the rule tests and checks caught 40 of 54 code mutations (74%). Survivors: line 533 num `0`; line 561 num `0`; line 619 cmp `s[\"cash\"] == 0`; line 619 num `0`; line 604 cmp `k == s[\"fav\"]`"
+ ],
+ "random": {
+  "win": 0.0,
+  "turn_avg": 20.0,
+  "reasons": [
+   "Rating 0 fell short of Vesper's bar of 48",
+   "Rating 0 fell short of Vesper's bar of 52",
+   "Rating 0 fell short of Vesper's bar of 54",
+   "Rating 1 fell short of Vesper's bar of 46"
+  ]
+ },
+ "heuristic": {
+  "win": 0.85,
+  "turn_avg": 20.0,
+  "reasons": [
+   "Rating 35 fell short of Vesper's bar of 50",
+   "Rating 38 fell short of Vesper's bar of 60",
+   "Rating 44 fell short of Vesper's bar of 48",
+   "Rating 44 fell short of Vesper's bar of 50"
+  ]
+ },
+ "lookahead": {
+  "win": 0.97,
+  "turn_avg": 20.0
+ },
+ "options": {
+  "avg": 4.1,
+  "max": 8
+ },
+ "universal": {
+  "observed_games": 80,
+  "fuzz_steps": 864,
+  "numeric_keys": [
+   "bar",
+   "cash",
+   "gap",
+   "live",
+   "rating"
+  ],
+  "forced_share": 0.19,
+  "max_choices": 4,
+  "hidden_seen": true
+ },
+ "mutation": {
+  "tested": 54,
+  "killed": 40,
+  "rate": 0.74
+ },
+ "tuning_round": "1 of 4"
+}

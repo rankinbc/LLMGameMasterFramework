@@ -1,0 +1,55 @@
+{
+ "verdict": "CLEAN",
+ "flags": [],
+ "warnings": [
+  "BAND: look-ahead wins 48%, under 60%; a thoughtful player may find it too hard"
+ ],
+ "random": {
+  "win": 0.0,
+  "turn_avg": 20.0,
+  "reasons": [
+   "Rating 0 fell short of Vesper's bar of 58",
+   "Rating 0 fell short of Vesper's bar of 66",
+   "Rating 0 fell short of Vesper's bar of 72",
+   "Rating 0 fell short of Vesper's bar of 74"
+  ]
+ },
+ "heuristic": {
+  "win": 0.36,
+  "turn_avg": 20.0,
+  "reasons": [
+   "Rating 23 fell short of Vesper's bar of 52",
+   "Rating 23 fell short of Vesper's bar of 54",
+   "Rating 23 fell short of Vesper's bar of 58",
+   "Rating 23 fell short of Vesper's bar of 62"
+  ]
+ },
+ "lookahead": {
+  "win": 0.48,
+  "turn_avg": 20.0
+ },
+ "options": {
+  "avg": 4.3,
+  "max": 8
+ },
+ "universal": {
+  "observed_games": 80,
+  "fuzz_steps": 853,
+  "numeric_keys": [
+   "bar",
+   "cash",
+   "gap",
+   "live",
+   "rating"
+  ],
+  "forced_share": 0.09,
+  "max_choices": 4,
+  "hidden_seen": true
+ },
+ "mutation": {
+  "tested": 55,
+  "killed": 47,
+  "rate": 0.85
+ },
+ "tuning_round": "2 of 4"
+}

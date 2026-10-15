@@ -1,0 +1,72 @@
+{
+ "turn": 13,
+ "turns": 18,
+ "status": "Fuel 36 | Traits 3/3 SEQ/ALIVE/STABLE | Line f b ~ L ~ G L F . ~ . .! | Labs on 2",
+ "events": [
+  "roll 4 (need 3+) STABLE success. STABLE confirmed. Traits 3/3.",
+  "Slot 5 (Lab) goes under.",
+  "The ice groans under slot 12 (nothing). It goes at the end of this turn.",
+  "Burned 3 fuel, guests paid 0. Fuel 36.",
+  "A quiet night. The ghosts play cards.",
+  "Powered: 2 Lab, 1 Freezer, 0 Radio, 0 Bunk."
+ ],
+ "visible": {
+  "fuel": 36,
+  "slots": [
+   "F",
+   "B",
+   "~",
+   "L",
+   "~",
+   "G",
+   "L",
+   "F",
+   null,
+   "~",
+   null,
+   null
+  ],
+  "hand": [
+   "L",
+   "G",
+   "L"
+  ],
+  "traits": [
+   "SEQ",
+   "ALIVE",
+   "STABLE"
+  ],
+  "known": {
+   "1": 6,
+   "2": 9,
+   "3": 2,
+   "4": 12,
+   "5": 3
+  },
+  "groan": 12,
+  "streak": 0,
+  "seance": false,
+  "hunker": false,
+  "escaped": false,
+  "_seed": 213891
+ },
+ "options": [
+  {
+   "id": "place_G",
+   "label": "Place a Generator in slot 9"
+  },
+  {
+   "id": "place_L",
+   "label": "Place a Lab in slot 9"
+  },
+  {
+   "id": "call",
+   "label": "Call the plane (2 fuel, roll d6 need 4+)"
+  },
+  {
+   "id": "hold",
+   "label": "Hunker down (burn 1 less fuel tonight; redraw the hand)"
+  }
+ ],
+ "ended": null
+}

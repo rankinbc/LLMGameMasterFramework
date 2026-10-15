@@ -1,0 +1,153 @@
+{
+ "games": 24,
+ "rollouts_per_option": 20,
+ "consequential_share": 0.66,
+ "dilemma_share": 0.56,
+ "forced_share": 0.05,
+ "decided_early_share": 0.38,
+ "mean_turns_decided_before_end": 5.5,
+ "turns": [
+  {
+   "turn": 1,
+   "games": 24,
+   "mean_spread": 0.53,
+   "consequential": 0.96,
+   "dilemma": 0.96
+  },
+  {
+   "turn": 2,
+   "games": 24,
+   "mean_spread": 0.5,
+   "consequential": 0.92,
+   "dilemma": 0.92
+  },
+  {
+   "turn": 3,
+   "games": 24,
+   "mean_spread": 0.41,
+   "consequential": 0.79,
+   "dilemma": 0.75
+  },
+  {
+   "turn": 4,
+   "games": 24,
+   "mean_spread": 0.4,
+   "consequential": 0.71,
+   "dilemma": 0.71
+  },
+  {
+   "turn": 5,
+   "games": 24,
+   "mean_spread": 0.45,
+   "consequential": 0.75,
+   "dilemma": 0.75
+  },
+  {
+   "turn": 6,
+   "games": 24,
+   "mean_spread": 0.4,
+   "consequential": 0.71,
+   "dilemma": 0.71
+  },
+  {
+   "turn": 7,
+   "games": 24,
+   "mean_spread": 0.33,
+   "consequential": 0.67,
+   "dilemma": 0.58
+  },
+  {
+   "turn": 8,
+   "games": 24,
+   "mean_spread": 0.31,
+   "consequential": 0.62,
+   "dilemma": 0.54
+  },
+  {
+   "turn": 9,
+   "games": 24,
+   "mean_spread": 0.33,
+   "consequential": 0.71,
+   "dilemma": 0.62
+  },
+  {
+   "turn": 10,
+   "games": 24,
+   "mean_spread": 0.29,
+   "consequential": 0.54,
+   "dilemma": 0.38
+  },
+  {
+   "turn": 11,
+   "games": 24,
+   "mean_spread": 0.39,
+   "consequential": 0.71,
+   "dilemma": 0.58
+  },
+  {
+   "turn": 12,
+   "games": 24,
+   "mean_spread": 0.42,
+   "consequential": 0.71,
+   "dilemma": 0.46
+  },
+  {
+   "turn": 13,
+   "games": 24,
+   "mean_spread": 0.38,
+   "consequential": 0.58,
+   "dilemma": 0.5
+  },
+  {
+   "turn": 14,
+   "games": 24,
+   "mean_spread": 0.41,
+   "consequential": 0.62,
+   "dilemma": 0.54
+  },
+  {
+   "turn": 15,
+   "games": 24,
+   "mean_spread": 0.39,
+   "consequential": 0.58,
+   "dilemma": 0.5
+  },
+  {
+   "turn": 16,
+   "games": 24,
+   "mean_spread": 0.41,
+   "consequential": 0.58,
+   "dilemma": 0.46
+  },
+  {
+   "turn": 17,
+   "games": 24,
+   "mean_spread": 0.37,
+   "consequential": 0.54,
+   "dilemma": 0.33
+  },
+  {
+   "turn": 18,
+   "games": 24,
+   "mean_spread": 0.39,
+   "consequential": 0.54,
+   "dilemma": 0.25
+  },
+  {
+   "turn": 19,
+   "games": 24,
+   "mean_spread": 0.37,
+   "consequential": 0.54,
+   "dilemma": 0.12
+  },
+  {
+   "turn": 20,
+   "games": 24,
+   "mean_spread": 0.37,
+   "consequential": 0.42,
+   "dilemma": 0.04
+  }
+ ],
+ "warnings": [],
+ "note": "Consequential: the best option clearly beats the worst by 20 points. Dilemma: consequential and a second option is within 15 points, or the sensible default is 10 points worse than the best. Advice, not gates."
+}

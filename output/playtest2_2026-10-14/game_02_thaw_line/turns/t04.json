@@ -1,0 +1,66 @@
+{
+ "turn": 5,
+ "turns": 18,
+ "status": "Fuel 44 | Traits 1/3 SEQ | Line F B G L L . . . . . . . | Labs on 2",
+ "events": [
+  "roll 5 (need 3+) SEQ success. SEQ confirmed. Traits 1/3.",
+  "Gunnar is quiet. The calving comes at the end of turn 9.",
+  "Burned 3 fuel, guests paid 3. Fuel 47.",
+  "Storm: the heaters run all night. Fuel -3 (44).",
+  "Powered: 2 Lab, 1 Freezer, 0 Radio, 1 Bunk."
+ ],
+ "visible": {
+  "fuel": 44,
+  "slots": [
+   "F",
+   "B",
+   "G",
+   "L",
+   "L",
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "hand": [
+   "F",
+   "B",
+   "B"
+  ],
+  "traits": [
+   "SEQ"
+  ],
+  "known": {
+   "1": 6,
+   "2": 9
+  },
+  "groan": null,
+  "streak": 0,
+  "seance": false,
+  "hunker": false,
+  "escaped": false,
+  "_seed": 213891
+ },
+ "options": [
+  {
+   "id": "place_F",
+   "label": "Place a Freezer in slot 6"
+  },
+  {
+   "id": "place_B",
+   "label": "Place a Bunk in slot 6"
+  },
+  {
+   "id": "ask",
+   "label": "Ask the ghosts about the next two unrevealed slots (2 fuel)"
+  },
+  {
+   "id": "hold",
+   "label": "Hunker down (burn 1 less fuel tonight; redraw the hand)"
+  }
+ ],
+ "ended": null
+}

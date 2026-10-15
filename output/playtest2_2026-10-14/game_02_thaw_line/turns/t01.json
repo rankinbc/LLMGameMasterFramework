@@ -1,0 +1,68 @@
+{
+ "turn": 2,
+ "turns": 18,
+ "status": "Fuel 47 | Traits 0/3 none | Line F B G . . . . . . . . . | Labs on 0",
+ "events": [
+  "The crew of '71 confer: slot 1 goes under at the end of turn 15 (6th to drown); slot 2 outlasts the plane.",
+  "Gunnar is quiet. The calving comes at the end of turn 9.",
+  "Burned 3 fuel, guests paid 3. Fuel 50.",
+  "Storm: the heaters run all night. Fuel -3 (47).",
+  "Powered: 0 Lab, 1 Freezer, 0 Radio, 1 Bunk."
+ ],
+ "visible": {
+  "fuel": 47,
+  "slots": [
+   "F",
+   "B",
+   "G",
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "hand": [
+   "F",
+   "B",
+   "L"
+  ],
+  "traits": [],
+  "known": {
+   "1": 6,
+   "2": 9
+  },
+  "groan": null,
+  "streak": 0,
+  "seance": false,
+  "hunker": false,
+  "escaped": false,
+  "_seed": 213891
+ },
+ "options": [
+  {
+   "id": "place_L",
+   "label": "Place a Lab in slot 4"
+  },
+  {
+   "id": "place_F",
+   "label": "Place a Freezer in slot 4"
+  },
+  {
+   "id": "place_B",
+   "label": "Place a Bunk in slot 4"
+  },
+  {
+   "id": "ask",
+   "label": "Ask the ghosts about the next two unrevealed slots (2 fuel)"
+  },
+  {
+   "id": "hold",
+   "label": "Hunker down (burn 1 less fuel tonight; redraw the hand)"
+  }
+ ],
+ "ended": null
+}

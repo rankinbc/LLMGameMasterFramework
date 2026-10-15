@@ -1,0 +1,260 @@
+{
+  "version": 1,
+  "about": "Trait vocabulary for the sameness detector. Each finished game gets one value per trait. A trait with roll=null has no dice behind it, so any repetition is an accident of habit and a candidate for a new roll axis.",
+  "thresholds": {
+    "streak_min_by_cardinality": {
+      "le3": 4,
+      "le8": 3,
+      "gt8": 2
+    },
+    "dominant_window": 10,
+    "dominant_min_games": 6,
+    "dominant_share_le3": 0.8,
+    "dominant_share_gt3": 0.6,
+    "similar_to_previous": 0.6,
+    "phrase_min_games": 4
+  },
+  "roll_sizes": {
+    "FORM": 20,
+    "SET": 60,
+    "ROLE": 60,
+    "LOOP": 36,
+    "CLOCK": 24,
+    "TWIST": 48,
+    "WIN": 20,
+    "MAP": 14,
+    "TONE": 12,
+    "CURRENCY": 12,
+    "TRACKED": 3
+  },
+  "traits": {
+    "primary_bucket": {
+      "roll": "CURRENCY",
+      "about": "What the primary tracked number is, the thing the player spends and fights over.",
+      "values": [
+        "cash",
+        "time",
+        "trust",
+        "attention",
+        "heat",
+        "stock",
+        "light",
+        "slots",
+        "energy",
+        "nerve",
+        "evidence",
+        "standing",
+        "score",
+        "other"
+      ],
+      "hint": "The CURRENCY roll now exists. Check that the next games obey it."
+    },
+    "tracked_count": {
+      "roll": "TRACKED",
+      "about": "How many numbers the status line tracks (not counting the turn counter).",
+      "values": [
+        "1",
+        "2",
+        "3"
+      ],
+      "hint": "The TRACKED roll (1 to 3) now sets this. Check that games obey it."
+    },
+    "rival_type": {
+      "roll": null,
+      "about": "How the main opposing force behaves.",
+      "values": [
+        "none",
+        "marcher",
+        "counter",
+        "racer",
+        "hunter",
+        "bidder",
+        "saboteur",
+        "environment",
+        "schedule"
+      ],
+      "meaning": {
+        "marcher": "moves by a fixed route or stride",
+        "counter": "reacts to the player's last move",
+        "racer": "races the player on a shared tally",
+        "hunter": "targets the richest or weakest thing",
+        "bidder": "competes for the same lots",
+        "saboteur": "damages the player's assets",
+        "environment": "weather, tide, hazard",
+        "schedule": "acts on a published timetable"
+      }
+    },
+    "rival_tell": {
+      "roll": null,
+      "about": "When the player learns what the rival will do.",
+      "values": [
+        "before",
+        "after",
+        "hidden"
+      ],
+      "meaning": {
+        "before": "shown before the player acts",
+        "after": "shown only after it happens",
+        "hidden": "must be inferred from history"
+      },
+      "hint": "Add a roll axis TELL: before, after, or hidden (inferred from history). Today the pre-flight rule makes every tell arrive before the player acts."
+    },
+    "win_shape": {
+      "roll": "WIN",
+      "about": "What counts as winning.",
+      "values": [
+        "threshold",
+        "survive",
+        "hold",
+        "deliver",
+        "build",
+        "deduce",
+        "outscore",
+        "collect"
+      ],
+      "meaning": {
+        "threshold": "reach a number",
+        "survive": "outlast the clock",
+        "hold": "control nodes at the end",
+        "deliver": "get one thing somewhere",
+        "build": "finish a structure",
+        "deduce": "name the answer",
+        "outscore": "beat a rival's tally",
+        "collect": "complete a set"
+      }
+    },
+    "clock_shape": {
+      "roll": "CLOCK",
+      "about": "What pressure ends the game.",
+      "values": [
+        "deadline",
+        "decay",
+        "escalation",
+        "race",
+        "upkeep",
+        "countdown"
+      ],
+      "meaning": {
+        "deadline": "an event lands on turn N",
+        "decay": "something erodes each turn",
+        "escalation": "a threat grows each turn",
+        "race": "a rival nears the goal",
+        "upkeep": "a fixed cost every turn",
+        "countdown": "a visible timer"
+      }
+    },
+    "opening_shape": {
+      "roll": null,
+      "about": "What the first third of turns feels like.",
+      "values": [
+        "stock-up",
+        "scout",
+        "plan",
+        "build",
+        "free-choice",
+        "grind"
+      ]
+    },
+    "ending_shape": {
+      "roll": null,
+      "about": "How the last third resolves.",
+      "values": [
+        "flat",
+        "final-roll",
+        "photo-finish",
+        "collapse",
+        "cliff"
+      ],
+      "meaning": {
+        "flat": "outcome effectively settled 3 or more turns early; the rest is routine",
+        "final-roll": "decided by one decisive late roll or check",
+        "photo-finish": "margin of one or two, decided by the player's last choices",
+        "collapse": "player lost control late after leading",
+        "cliff": "sudden hard-threshold win or loss"
+      },
+      "roll_exclude": [
+        "flat"
+      ],
+      "hint": "Add a roll axis FINISH: final-roll, photo-finish, collapse or cliff (never flat). The generator designs the last third for the rolled shape; profile and autopsy verify it."
+    },
+    "midpoint_event": {
+      "roll": null,
+      "about": "What changes around the middle.",
+      "values": [
+        "none",
+        "rule-change",
+        "unlock",
+        "new-threat",
+        "reveal"
+      ]
+    },
+    "player_frame": {
+      "roll": "ROLE",
+      "about": "What the player is doing, structurally.",
+      "values": [
+        "manager",
+        "operator",
+        "explorer",
+        "negotiator",
+        "commander",
+        "investigator",
+        "caretaker",
+        "other"
+      ],
+      "meaning": {
+        "manager": "runs an organization",
+        "operator": "drives one machine, route or crew",
+        "explorer": "moves through unknown space",
+        "negotiator": "deals with parties",
+        "commander": "directs units against an opponent",
+        "investigator": "gathers clues",
+        "caretaker": "tends living or growing things"
+      },
+      "hint": "ROLE is bent into the same frame. Add a ROLE-to-frame map so the table decides the frame and the generator does not override it."
+    },
+    "decision_unit": {
+      "roll": "FORM",
+      "about": "What one decision physically is.",
+      "values": [
+        "pick-action",
+        "allocate",
+        "bid",
+        "place",
+        "route",
+        "assign"
+      ],
+      "meaning": {
+        "pick-action": "choose one action from a short list",
+        "allocate": "split points across dials",
+        "bid": "name a price",
+        "place": "put a piece on a board",
+        "route": "choose a path",
+        "assign": "match things to slots"
+      },
+      "hint": "The engine contract offers a fixed list of options, so bids, allocations, placements and routes collapse into menu picks whatever FORM rolls. Add parametric actions: an option may carry a number range or a target the player fills in."
+    },
+    "setting_family": {
+      "roll": "SET",
+      "about": "Broad flavor of the world.",
+      "values": [
+        "workplace",
+        "scifi",
+        "fantasy",
+        "nature",
+        "historical",
+        "military",
+        "abstract",
+        "other"
+      ]
+    },
+    "turn_band": {
+      "roll": null,
+      "about": "Turn budget: short is 14 or fewer, mid is 15 to 18, long is 19 or more.",
+      "values": [
+        "short",
+        "mid",
+        "long"
+      ]
+    }
+  }
+}

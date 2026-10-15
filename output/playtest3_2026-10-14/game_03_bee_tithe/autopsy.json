@@ -1,0 +1,191 @@
+{
+ "result": "win",
+ "reason": "the Harvest Count found approval 43",
+ "turns_played": 16,
+ "hard_turns": [
+  1,
+  2,
+  3,
+  4,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+  16
+ ],
+ "hard_share": 0.94,
+ "decided_at_turn": null,
+ "biggest_swing": {
+  "turn": 9,
+  "potential_before": 0.65,
+  "potential_after": 0.95,
+  "picked": "Call a favor at Fen (mood -2, light +8)",
+  "best_option": "Call a favor at Vine (mood -2, light +8, walk -1)",
+  "events": [
+   "You stay at Fen.",
+   "Fen pays its favor: mood -2 to 5, light +8.",
+   "The long night begins: the front now falls on two steadings.",
+   "The front fell on Barley: sun 3 to 1.",
+   "The front fell on Mill: sun 2 to 0.",
+   "Sun drifts: Orchard +1, Vine -1, Hearth +1."
+  ]
+ },
+ "top_regrets": [
+  {
+   "turn": 14,
+   "picked": "Gift 2 light to Mill (sun 1: mood +4)",
+   "better": "Gather at Mill (sun 1: +1 light)",
+   "cost": 0.72
+  },
+  {
+   "turn": 12,
+   "picked": "Gift 1 light to Barley (sun 0: mood +3, walk -1)",
+   "better": "Call a favor at Mill (mood -2, light +8, walk -2)",
+   "cost": 0.62
+  },
+  {
+   "turn": 11,
+   "picked": "Gift 1 light to Orchard (sun 0: mood +1, walk -2)",
+   "better": "Call a favor at Vine (mood -2, light +8, walk -1)",
+   "cost": 0.53
+  }
+ ],
+ "flags": [],
+ "table": [
+  {
+   "turn": 1,
+   "best": 0.475,
+   "worst": 0.15,
+   "spread": 0.33,
+   "picked_rate": 0.38,
+   "regret": 0.0
+  },
+  {
+   "turn": 2,
+   "best": 0.375,
+   "worst": 0.1,
+   "spread": 0.28,
+   "picked_rate": 0.25,
+   "regret": 0.0
+  },
+  {
+   "turn": 3,
+   "best": 0.5,
+   "worst": 0.175,
+   "spread": 0.33,
+   "picked_rate": 0.35,
+   "regret": 0.0
+  },
+  {
+   "turn": 4,
+   "best": 0.65,
+   "worst": 0.325,
+   "spread": 0.33,
+   "picked_rate": 0.5,
+   "regret": 0.15
+  },
+  {
+   "turn": 5,
+   "best": 0.6,
+   "worst": 0.475,
+   "spread": 0.0,
+   "picked_rate": 0.6,
+   "regret": 0.0
+  },
+  {
+   "turn": 6,
+   "best": 0.65,
+   "worst": 0.25,
+   "spread": 0.4,
+   "picked_rate": 0.65,
+   "regret": 0.0
+  },
+  {
+   "turn": 7,
+   "best": 0.65,
+   "worst": 0.25,
+   "spread": 0.4,
+   "picked_rate": 0.38,
+   "regret": 0.28
+  },
+  {
+   "turn": 8,
+   "best": 0.85,
+   "worst": 0.475,
+   "spread": 0.38,
+   "picked_rate": 0.72,
+   "regret": 0.0
+  },
+  {
+   "turn": 9,
+   "best": 0.65,
+   "worst": 0.375,
+   "spread": 0.28,
+   "picked_rate": 0.6,
+   "regret": 0.0
+  },
+  {
+   "turn": 10,
+   "best": 0.95,
+   "worst": 0.4,
+   "spread": 0.55,
+   "picked_rate": 0.88,
+   "regret": 0.0
+  },
+  {
+   "turn": 11,
+   "best": 0.8,
+   "worst": 0.2,
+   "spread": 0.6,
+   "picked_rate": 0.28,
+   "regret": 0.53
+  },
+  {
+   "turn": 12,
+   "best": 0.825,
+   "worst": 0.0,
+   "spread": 0.82,
+   "picked_rate": 0.2,
+   "regret": 0.62
+  },
+  {
+   "turn": 13,
+   "best": 0.775,
+   "worst": 0.0,
+   "spread": 0.78,
+   "picked_rate": 0.72,
+   "regret": 0.0
+  },
+  {
+   "turn": 14,
+   "best": 1.0,
+   "worst": 0.0,
+   "spread": 1.0,
+   "picked_rate": 0.28,
+   "regret": 0.72
+  },
+  {
+   "turn": 15,
+   "best": 1.0,
+   "worst": 0.0,
+   "spread": 1.0,
+   "picked_rate": 1.0,
+   "regret": 0.0
+  },
+  {
+   "turn": 16,
+   "best": 1.0,
+   "worst": 0.0,
+   "spread": 1.0,
+   "picked_rate": 1.0,
+   "regret": 0.0
+  }
+ ],
+ "note": "best and worst are win rates of the best and worst legal option at that turn, from 'k' paired rollouts with sensible play after"
+}

@@ -1,0 +1,43 @@
+{
+ "id": "p3_02_drawdown_depot",
+ "date": "2026-10-14",
+ "title": "Drawdown Depot",
+ "result": "loss",
+ "turns": 16,
+ "turn_budget": 16,
+ "rolls": {
+  "FORM": 12,
+  "SET": 55,
+  "ROLE": 3,
+  "LOOP": 21,
+  "CLOCK": 11,
+  "TWIST": 21,
+  "WIN": 14,
+  "MAP": 5,
+  "TONE": 12,
+  "CURRENCY": 7
+ },
+ "traits": {
+  "primary_bucket": "slots",
+  "tracked_count": "2",
+  "rival_type": "hunter",
+  "rival_tell": "hidden",
+  "win_shape": "threshold",
+  "clock_shape": "decay",
+  "opening_shape": "build",
+  "ending_shape": "collapse",
+  "midpoint_event": "rule-change",
+  "player_frame": "manager",
+  "decision_unit": "assign",
+  "setting_family": "workplace",
+  "turn_band": "mid"
+ },
+ "primary_number": "Beds",
+ "evidence": {
+  "tracked_count": "Beds and the bus board; Table is a fixed countdown (17 minus the night) so it was treated as the clock; Struck is a report. Arguably 3 if Table is counted.",
+  "rival_tell": "Assessor cycle (2 richest, 1 haunt, 1 home) inferred from strike texts: night 1 home, night 2 haunt (Layer 1), so nights 3 and 4 were rich; recess broke the pattern once.",
+  "ending_shape": "Beds peaked at 16 on turn 9, then bled to 6 under dry wells and three more Assessor hits; two stalls on turn 15 sealed it, with the goal out of reach before the last night.",
+  "decision_unit": "Nine of sixteen turns were bus-to-layer assignments; the rest were one shore, one sink and five holds.",
+  "player_frame": "Dispatching a three-bus fleet is running a small organization, so manager rather than operator."
+ }
+}

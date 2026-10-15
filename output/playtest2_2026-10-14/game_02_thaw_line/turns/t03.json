@@ -1,0 +1,70 @@
+{
+ "turn": 4,
+ "turns": 18,
+ "status": "Fuel 50 | Traits 0/3 none | Line F B G L L . . . . . . . | Labs on 2",
+ "events": [
+  "Lab bolted into slot 5 (powered).",
+  "Powered Labs now 2: trial need 3+.",
+  "Hand: Freezer, Bunk, Bunk.",
+  "Gunnar is quiet. The calving comes at the end of turn 9.",
+  "Burned 3 fuel, guests paid 3. Fuel 47.",
+  "A charter of glaciologists checks in and pays in diesel: +3 fuel (50).",
+  "Powered: 2 Lab, 1 Freezer, 0 Radio, 1 Bunk."
+ ],
+ "visible": {
+  "fuel": 50,
+  "slots": [
+   "F",
+   "B",
+   "G",
+   "L",
+   "L",
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "hand": [
+   "F",
+   "B",
+   "B"
+  ],
+  "traits": [],
+  "known": {
+   "1": 6,
+   "2": 9
+  },
+  "groan": null,
+  "streak": 0,
+  "seance": false,
+  "hunker": false,
+  "escaped": false,
+  "_seed": 213891
+ },
+ "options": [
+  {
+   "id": "place_F",
+   "label": "Place a Freezer in slot 6"
+  },
+  {
+   "id": "place_B",
+   "label": "Place a Bunk in slot 6"
+  },
+  {
+   "id": "trial_seq",
+   "label": "Run the SEQ trial (3 fuel, roll d6 need 3+)"
+  },
+  {
+   "id": "ask",
+   "label": "Ask the ghosts about the next two unrevealed slots (2 fuel)"
+  },
+  {
+   "id": "hold",
+   "label": "Hunker down (burn 1 less fuel tonight; redraw the hand)"
+  }
+ ],
+ "ended": null
+}

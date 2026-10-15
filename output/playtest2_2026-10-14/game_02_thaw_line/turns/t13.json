@@ -1,0 +1,76 @@
+{
+ "turn": 14,
+ "turns": 18,
+ "status": "Fuel 28 | Traits 3/3 SEQ/ALIVE/STABLE | Line f b ~ L ~ G L! F . ~ . ~ | Labs on 2",
+ "events": [
+  "roll 2 (need 4+) plane fail. The pilot turns back in the whiteout. Try again tomorrow.",
+  "Slot 12 (empty) goes under.",
+  "The ice groans under slot 7 (Lab). It goes at the end of this turn.",
+  "Burned 3 fuel, guests paid 0. Fuel 31.",
+  "Storm: the heaters run all night. Fuel -3 (28).",
+  "Powered: 2 Lab, 1 Freezer, 0 Radio, 0 Bunk."
+ ],
+ "visible": {
+  "fuel": 28,
+  "slots": [
+   "F",
+   "B",
+   "~",
+   "L",
+   "~",
+   "G",
+   "L",
+   "F",
+   null,
+   "~",
+   null,
+   "~"
+  ],
+  "hand": [
+   "L",
+   "G",
+   "L"
+  ],
+  "traits": [
+   "SEQ",
+   "ALIVE",
+   "STABLE"
+  ],
+  "known": {
+   "1": 6,
+   "2": 9,
+   "3": 2,
+   "4": 12,
+   "5": 3
+  },
+  "groan": 7,
+  "streak": 0,
+  "seance": false,
+  "hunker": false,
+  "escaped": false,
+  "_seed": 213891
+ },
+ "options": [
+  {
+   "id": "place_G",
+   "label": "Place a Generator in slot 9"
+  },
+  {
+   "id": "place_L",
+   "label": "Place a Lab in slot 9"
+  },
+  {
+   "id": "swap",
+   "label": "Swap the Lab in slot 7 with the Freezer in slot 8 (2 fuel)"
+  },
+  {
+   "id": "call",
+   "label": "Call the plane (2 fuel, roll d6 need 4+)"
+  },
+  {
+   "id": "hold",
+   "label": "Hunker down (burn 1 less fuel tonight; redraw the hand)"
+  }
+ ],
+ "ended": null
+}

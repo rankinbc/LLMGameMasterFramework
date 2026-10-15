@@ -1,0 +1,78 @@
+{
+ "turn": 11,
+ "turns": 18,
+ "status": "Fuel 43 | Traits 1/3 SEQ | Line F B G! L L G L F . ~ . . | Labs on 3",
+ "events": [
+  "roll 2 (need 3+) ALIVE fail. The bench is inconclusive. Failed trials in a row: 1.",
+  "Slot 10 (empty) goes under.",
+  "The ice groans under slot 3 (Generator). It goes at the end of this turn.",
+  "Burned 4 fuel, guests paid 3. Fuel 43.",
+  "A quiet night. The ghosts play cards.",
+  "Powered: 3 Lab, 2 Freezer, 0 Radio, 1 Bunk."
+ ],
+ "visible": {
+  "fuel": 43,
+  "slots": [
+   "F",
+   "B",
+   "G",
+   "L",
+   "L",
+   "G",
+   "L",
+   "F",
+   null,
+   "~",
+   null,
+   null
+  ],
+  "hand": [
+   "L",
+   "G",
+   "L"
+  ],
+  "traits": [
+   "SEQ"
+  ],
+  "known": {
+   "1": 6,
+   "2": 9,
+   "3": 2,
+   "4": 12,
+   "5": 3
+  },
+  "groan": 3,
+  "streak": 1,
+  "seance": false,
+  "hunker": false,
+  "escaped": false,
+  "_seed": 213891
+ },
+ "options": [
+  {
+   "id": "place_G",
+   "label": "Place a Generator in slot 9"
+  },
+  {
+   "id": "place_L",
+   "label": "Place a Lab in slot 9"
+  },
+  {
+   "id": "trial_alive",
+   "label": "Run the ALIVE trial (3 fuel, roll d6 need 3+)"
+  },
+  {
+   "id": "trial_stable",
+   "label": "Run the STABLE trial (3 fuel, roll d6 need 3+)"
+  },
+  {
+   "id": "swap",
+   "label": "Swap the Generator in slot 3 with the Lab in slot 4 (2 fuel)"
+  },
+  {
+   "id": "hold",
+   "label": "Hunker down (burn 1 less fuel tonight; redraw the hand)"
+  }
+ ],
+ "ended": null
+}

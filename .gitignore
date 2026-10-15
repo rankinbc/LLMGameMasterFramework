@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.tmp
+tune.count
+# live game files; the reports and engines are what matter
+state.json
+history.jsonl
+rolls.log
+# scratch
+temp_*
