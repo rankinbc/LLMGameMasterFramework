@@ -164,6 +164,10 @@ MUTANTS = {
           "3. Hauling: roll {HAUL_NEED}+ on a d{DIE} to bring back {HAUL_GAIN} oil, otherwise {HAUL_FAIL}, " + "and then keep going with the rest of the night " * 8)],
         ["SHEET: rule 3"],
     ),
+    "prices_a_feeling_like_goods": (
+        [("Haul oil from the depot (roll", "Sell the crew's morale for oil (roll")],
+        ["SENSE:"],
+    ),
     "param_with_no_choices": (
         [('"params": {"oil": {"choices": spend}}', '"params": {"oil": {"choices": []}}')],
         ["CRASH"],

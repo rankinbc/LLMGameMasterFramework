@@ -331,6 +331,55 @@ class TextLintTests(unittest.TestCase):
         self.assertEqual(K.plural(2, "person", "people"), "2 people")
 
 
+class SenseLintTests(unittest.TestCase):
+    """A feeling or a standing is not goods: nobody sells a shopkeeper morale for 5 Light."""
+
+    def test_pricing_a_feeling_is_flagged(self):
+        for text in (
+            "Lamp the Yard at 4 Light a point (buy 1 to 2 Morale)",
+            "Cut the Press at 5 Light a point (sell 1 to 3 Morale)",
+            "1. Each turn visit one console: LAMP up to 3 Morale, paying its rate in Light a point, or CUT up to 3 Morale, selling it at that rate in Light.",
+            "Spend 5 Light for 2 Morale",
+            "Pay 3 coins for a bit of Trust",
+            "Purchase some Nerve from the quartermaster",
+        ):
+            self.assertTrue(K.sense_problems(text), text)
+
+    def test_ordinary_wording_is_not_flagged(self):
+        for text in (
+            "Sell the furs (+6 coin)",
+            "Buy time at the gate",
+            "Pay attention to the gauge",
+            "Calm the crew (+2 Morale, costs 1 ration)",
+            "Morale slumps 1 at dusk.",
+            "Bribe the guard (-2 oil, Suspicion -1)",
+            "Heat the forge, then sell the iron",
+            "You lose Trust.",
+        ):
+            self.assertEqual(K.sense_problems(text), [], text)
+
+    def test_non_text_is_ignored(self):
+        self.assertEqual(K.sense_problems(None), [])
+
+
+class MoveShapeTests(unittest.TestCase):
+    def test_followups_count_the_answers_after_the_menu_number(self):
+        yard = [
+            {"id": "lamp", "label": "Lamp", "args": {"console": "yard"}, "group": "Yard", "params": {"amount": {"min": 1, "max": 3}}},
+            {"id": "cut", "label": "Cut", "args": {"console": "yard"}, "group": "Yard", "params": {"amount": {"min": 1, "max": 3}}},
+        ]
+        self.assertEqual(K.followups(yard), 2, "which verb, then how many")
+        self.assertEqual(K.followups([{"id": "walk", "label": "Walk", "args": {}}]), 0)
+        lanterns = [{"id": "light", "label": f"Light {i}", "args": {"lantern": i}, "group": "Light"} for i in range(3)]
+        self.assertEqual(K.followups(lanterns), 1, "which lantern")
+        self.assertEqual(K.followups([{"id": "bid", "label": "Bid", "args": {}, "params": {"amount": {"min": 1, "max": 5}}}]), 1)
+
+    def test_status_numbers(self):
+        self.assertEqual(K.status_numbers("Light 9 | Morale 8 | Rates: Yard 4 Mess 1 Press 5 Chapel 3 | Ledger: honest"), 6)
+        self.assertEqual(K.status_numbers("Oil 12 | Column 5/12 | Wind: none"), 3)
+        self.assertEqual(K.status_numbers("Ring: Y.V"), 0)
+
+
 class TuneCounterTests(unittest.TestCase):
     def test_only_logic_or_number_changes_count_as_a_round(self):
         old = os.getcwd()

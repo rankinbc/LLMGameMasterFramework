@@ -15,6 +15,8 @@ What is caught here, with no per-game code (a game may add BOUNDS, REACH, GATES,
     a crash at the observed minimum or maximum of any numeric state key (fuzz)
     nondeterminism: a different trace for the same seed, in process or across hash seeds
     more than 3 tracked numbers, a rule line that is too long
+    a feeling priced like goods in the sheet, a label or an event ("buy 2 Morale"): SENSE
+    warnings: a menu number that needs two answers (MOVE), a status line with more than 5 numbers (STATUS)
 
 Rule tests (the executable spec) are written per game as Game.rule_tests(); see class T.
 """
@@ -97,6 +99,56 @@ def text_problems(text, soft=False):
     if soft:
         out += [msg for rx, msg in SOFT_LINTS if rx.search(text)]
     return out
+
+
+# A feeling or a standing is not goods. Nobody tells a shopkeeper "I'll buy a morale for 5 Light". Actions change
+# these numbers as a consequence (feeding the crew raises morale, a bribe lowers suspicion); they are never bought,
+# sold or priced. Words that are also physical things (heat, standing, attention) are left out on purpose.
+_ABSTRACT = frozenset(
+    "morale trust nerve sanity courage composure goodwill loyalty confidence happiness mood patience suspicion".split()
+)
+_MARKET = frozenset(
+    "buy buys buying bought sell sells selling sold purchase purchases purchasing price prices priced exchange exchanges exchanging".split()
+)
+_PAY_FOR = re.compile(
+    r"\b(?:pay|pays|paying|paid|spend|spends|spending|spent|swap|swaps|swapping|trade|trades|trading)\b[^.;()]{0,50}?\bfor\b[^.;()]{0,25}?\b(?:%s)\b"
+    % "|".join(sorted(_ABSTRACT)),
+    re.I,
+)
+
+
+def sense_problems(text):
+    """Player-facing text that prices a feeling like goods ('buy 2 Morale', 'sell it at that rate in Light')."""
+    if not isinstance(text, str):
+        return []
+    words = re.findall(r"[a-z']+", text.lower())
+    for i, w in enumerate(words):
+        if w in _MARKET:
+            hit = next((x for x in words[max(0, i - 5): i + 6] if x in _ABSTRACT), None)
+            if hit:
+                return [f"treats {hit} as goods ('{w}' next to '{hit}'); a feeling is changed by what the character does, never bought, sold or priced"]
+    m = _PAY_FOR.search(text)
+    if m:
+        return [f"treats a feeling as goods ({m.group(0)!r}); a feeling is changed by what the character does, never bought, sold or priced"]
+    return []
+
+
+def followups(opts):
+    """The most answers the player gives after picking a menu number: which one of a group, then each param.
+    A walk is 0; 'Light lantern 3' is 1; 'lamp or cut, and how many' is 2, which is two questions for one move."""
+    groups = {}
+    for i, o in enumerate(opts):
+        groups.setdefault(o.get("group") or ("_ungrouped", i), []).append(o)
+    worst = 0
+    for grp in groups.values():
+        n = (1 if len(grp) > 1 else 0) + max(len(o.get("params") or {}) for o in grp)
+        worst = max(worst, n)
+    return worst
+
+
+def status_numbers(status):
+    """How many numbers the status line asks the player to read."""
+    return len(re.findall(r"(?<![\w.])\d+(?:\.\d+)?(?!\w)", status))
 
 
 def scan_state(s, path="state"):
@@ -313,7 +365,7 @@ def observe(g, B, games=80):
     snaps = []
     srng = random.Random(2024)
     labels0 = None
-    stat = {"states": 0, "forced": 0, "max_choices": 0, "hidden_seen": False}
+    stat = {"states": 0, "forced": 0, "max_choices": 0, "hidden_seen": False, "max_followups": 0, "max_status_numbers": 0}
     event_words = {}
     known_parts = [g.name, " ".join(getattr(g, "ACTIONS", [])), " ".join(getattr(g, "TAGS", []))]
     try:
@@ -356,11 +408,15 @@ def observe(g, B, games=80):
                 for o in opts:
                     for p in text_problems(o.get("label"), soft=False):
                         add("text", f"option label {o.get('label')!r} {p}")
+                    for p in sense_problems(o.get("label")):
+                        add("sense", f"option label {o.get('label')!r} {p}")
                     known_parts.append(f"{o.get('label', '')} {o.get('group', '')}")
                 stat["states"] += 1
                 stat["forced"] += B._is_forced(opts)
                 stat["max_choices"] = max(stat["max_choices"], _choices(opts))
+                stat["max_followups"] = max(stat["max_followups"], followups(opts))
                 status = g.status_line(s)
+                stat["max_status_numbers"] = max(stat["max_status_numbers"], status_numbers(status))
                 known_parts.append(status)
                 for p in text_problems(status):
                     add("text", f"status line {status!r} {p}")
@@ -393,6 +449,8 @@ def observe(g, B, games=80):
                 for ev in events + ([s["_ended"]["reason"]] if s.get("_ended") and s["_ended"].get("reason") else []):
                     for p in text_problems(ev):
                         add("text", f"event {ev!r} {p}")
+                    for p in sense_problems(ev):
+                        add("sense", f"event {ev!r} {p}")
                     for w in secret:
                         if len(w) >= 4 and w.isalpha() and w.lower() in ev.lower():
                             add("leak_hint", f"LEAK?: hidden text {w!r} appears in the event {ev!r}; make sure the player may know it by then")
@@ -772,6 +830,7 @@ def run_universal(g, B, engine_path=None):
     names = {
         "json": "JSON", "state": "STATE", "bounds": "BOUNDS", "leak": "LEAK", "text": "TEXT",
         "status": "STATUS", "hidden": "GATE-HIDDEN", "ungated": "GATE-OFFERED", "crash": "CRASH", "after_end": "TEXT",
+        "sense": "SENSE",
     }
     soft = {"leak_hint": "", "status_soft": "STATUS: "}
     for kind, msgs in obs["problems"].items():
@@ -780,6 +839,14 @@ def run_universal(g, B, engine_path=None):
                 warnings.append(f"{soft[kind]}{m}")
             else:
                 flags.append(f"{names.get(kind, kind.upper())}: {m}")
+    # the rulesheet is read first by the player: it must not price a feeling either
+    try:
+        sheet_lines = g.rules().splitlines()
+    except Exception:  # noqa: BLE001
+        sheet_lines = []
+    for line in sheet_lines:
+        for p in sense_problems(line):
+            flags.append(f"SENSE: rule {line[:70]!r} {p}")
     # REACH: promised values must actually occur somewhere (catches clamps and dead thresholds)
     for key, target in getattr(g, "REACH", {}).items():
         op, val = target if isinstance(target, (tuple, list)) else (">=", target)
@@ -822,6 +889,16 @@ def run_universal(g, B, engine_path=None):
     forced_share = st["forced"] / max(1, st["states"])
     if forced_share > 0.15:
         warnings.append(f"FORCED: {forced_share:.0%} of turns offered a single legal option; those turns are not decisions")
+    if st["max_followups"] > 1:
+        warnings.append(
+            f"MOVE: a menu number can need {st['max_followups']} answers before the move is known (a verb and an amount, say). "
+            "One move should take one answer: give each verb its own choice, or drop the amount"
+        )
+    if st["max_status_numbers"] > 5:
+        warnings.append(
+            f"STATUS: the status line shows up to {st['max_status_numbers']} numbers. A player reads and juggles all of them; "
+            "5 or fewer, or fold the rest into the options"
+        )
     if st["max_choices"] > 8:
         warnings.append(f"MENU: up to {st['max_choices']} choices after grouping; give same-verb actions a group, or use params for amounts")
     if st["vocab"]:

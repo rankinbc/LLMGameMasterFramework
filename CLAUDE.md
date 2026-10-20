@@ -18,6 +18,7 @@ Home for the `/play` skill (`~/.claude/skills/play/SKILL.md`). Each `/play` inve
 | `tools/sameness.py` | `brief`, `novelty`, `verbs`, `add`, `report`, `backlog`, `phrases`. Finds repetition across games and runs the novelty check. |
 | `tools/check_all.py` | Runs `check --quick` over many engines (the library, old games). |
 | `tools/qa_prompt.md` | The independent-review prompt: a fresh agent plays a new game three times, sends bad input and compares the sheet with the code. Step 7 of the skill uses it. |
+| `tools/coldread_prompt.md` | The cold-read prompt: a fresh agent sees only the opening screen and says what it thinks the game is, what each action physically is (NONSENSE if it cannot be), its first move and whether it would keep playing. Step 7 (4a) uses it, before the QA review. |
 | `tests/` | Regression suite for the harness: unit tests plus one mutant engine per bug class, each of which must be caught. |
 | `output/playtest_<date>/` | Playtest transcripts, summaries and the analysis report. |
 
@@ -64,4 +65,5 @@ Change `gm_base.py` or `gm_checks.py` only with the suite green. To add a bug cl
 - A turn is the player's action (`apply`), then dusk (`advance`), then the counter goes up. `_turn` is the turn being played in `apply`, `advance` and `check_end`; the budget is scored in `final_check`. A fatal event calls `self.finish(...)`.
 - A new game gets an independent review (Step 7) before it is presented, repeated with a fresh reviewer until a round finds no S1 or S2 and at most two S3. Measured on 8 attacked games: no wrong arithmetic; about four wording or sheet slips a game after two reviews. Every bug it finds in the harness becomes a mutant or a unit test first.
 - A turn whose JSON carries a non-empty `integrity` list is an engine bug. Stop, fix, recheck; never narrate over it.
+- A game must make sense to a stranger (skill limits 9 and 10). Feelings and standings (morale, trust, nerve, suspicion) are never bought, sold or priced; a rolled number is not a currency just because it was rolled; action labels are plain verbs, not code words. `check` flags the worst case as SENSE, warns on MOVE (a menu number needing two answers) and STATUS (more than 5 numbers), and the cold read (Step 7, 4a) catches the rest. Origin: Dim Ledger (2026-10-16) sold crew morale for Light at four "consoles" and passed `check` and two QA rounds, because both test the engine, not whether the game makes sense.
 - Sessions are disposable. Library is the keeper. Only save after finishing a game.
