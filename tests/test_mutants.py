@@ -101,8 +101,20 @@ MUTANTS = {
         ["BOUNDS:"],
     ),
     "declared_action_never_offered": (
-        [('ACTIONS = ["light", "shield", "haul", "signal", "sled"]', 'ACTIONS = ["light", "shield", "haul", "signal", "sled", "ghost"]')],
+        [('ACTIONS = ["light", "shield", "haul", "windbreak", "signal", "sled"]', 'ACTIONS = ["light", "shield", "haul", "windbreak", "signal", "sled", "ghost"]')],
         ["ACTION: ghost"],
+    ),
+    "rival_gambit_touches_nothing": (
+        [('                s["wind"] = []  # the rival\'s move is undone: this is what makes it a rival gambit\n', "")],
+        ["GAMBIT:"],
+    ),
+    "gambit_not_an_action": (
+        [('GAMBITS = {"windbreak": {"rival": True}}', 'GAMBITS = {"windbreak": {"rival": True}, "parley": {}}')],
+        ["GAMBIT:"],
+    ),
+    "rival_keys_name_a_missing_key": (
+        [('RIVAL_KEYS = ["wind"]', 'RIVAL_KEYS = ["gale"]')],
+        ["GAMBIT:"],
     ),
     "undeclared_action_offered": (
         [("\n        return o\n\n    def apply", "\n        o.append({\"id\": \"secret\", \"label\": \"A secret move\", \"args\": {}})\n        return o\n\n    def apply")],

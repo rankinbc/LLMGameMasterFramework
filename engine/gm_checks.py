@@ -365,7 +365,10 @@ def observe(g, B, games=80):
     snaps = []
     srng = random.Random(2024)
     labels0 = None
-    stat = {"states": 0, "forced": 0, "max_choices": 0, "hidden_seen": False, "max_followups": 0, "max_status_numbers": 0}
+    stat = {"states": 0, "forced": 0, "max_choices": 0, "hidden_seen": False, "max_followups": 0, "max_status_numbers": 0,
+            "gambit_states": {}, "gambit_played": {}, "rival_touched": {}}
+    gambits = getattr(g, "GAMBITS", {}) or {}
+    rival_keys = list(getattr(g, "RIVAL_KEYS", []) or [])
     event_words = {}
     known_parts = [g.name, " ".join(getattr(g, "ACTIONS", [])), " ".join(getattr(g, "TAGS", []))]
     try:
@@ -430,6 +433,9 @@ def observe(g, B, games=80):
                 elif labs != labels0:
                     add("status_soft", f"status field labels change between turns: {labels0} then {labs} (fine for a day name or a map; not for a number)")
                 offered = {o["id"] for o in opts}
+                for gid in gambits:
+                    if gid in offered:
+                        stat["gambit_states"][gid] = stat["gambit_states"].get(gid, 0) + 1
                 for a in getattr(g, "GATES", {}):
                     ok = gate_state(g, a, s)
                     if ok and a not in offered:
@@ -443,6 +449,14 @@ def observe(g, B, games=80):
                     add("crash", f"no legal options at turn {s['_turn']}")
                     break
                 pick = _pick(g, B, s, opts, rng, policy)
+                if pick["id"] in gambits:
+                    stat["gambit_played"][pick["id"]] = stat["gambit_played"].get(pick["id"], 0) + 1
+                    if gambits[pick["id"]].get("rival") and rival_keys:
+                        # the action alone, on a copy, with the same dice: did it touch the rival at all?
+                        trial = copy.deepcopy(s)
+                        g.apply(trial, pick["id"], dict(pick.get("args", {})), B.RNG(s["_seed"], s["_rng"]))
+                        if any(trial.get(k) != s.get(k) for k in rival_keys):
+                            stat["rival_touched"][pick["id"]] = stat["rival_touched"].get(pick["id"], 0) + 1
                 s, events, _ = B._step(g, s, pick["id"], pick.get("args", {}))
                 secret = []
                 _collect_strings(s.get("hidden"), secret)
@@ -821,12 +835,61 @@ def run_rule_tests(g, B):
 # ---------------------------------------------------------------- the combined run
 
 
+GAMBIT_OFFER_MIN = 0.25  # a gambit offered in fewer states than this cannot absorb the player's off-menu ideas
+
+
+def gambit_problems(g, stat, s0=None):
+    """Flags and warnings for GAMBITS and RIVAL_KEYS, from what `observe` recorded. Pure, so the tests can feed it."""
+    flags, warnings = [], []
+    gambits = getattr(g, "GAMBITS", {}) or {}
+    rival_keys = list(getattr(g, "RIVAL_KEYS", []) or [])
+    if not isinstance(gambits, dict) or not all(isinstance(v, dict) for v in gambits.values()):
+        return [f"GAMBIT: GAMBITS must be a dict of id -> {{}} or {{'rival': True}}, got {gambits!r}"], warnings
+    if not gambits:
+        warnings.append(
+            "GAMBIT: no GAMBITS declared, so the player can only play the loop and every idea of theirs gets 'the game cannot'. "
+            "Declare two or three risky moves the setting invites, one of them against the rival (see the contract)"
+        )
+        return flags, warnings
+    if s0 is not None:
+        for k in rival_keys:
+            if k not in s0:
+                flags.append(f"GAMBIT: RIVAL_KEYS names {k!r}, which is not a key of the state")
+    rival_gambits = [gid for gid, spec in gambits.items() if spec.get("rival")]
+    if rival_gambits and not rival_keys:
+        flags.append(f"GAMBIT: {', '.join(rival_gambits)} marked rival, but RIVAL_KEYS is empty; name the state keys that describe the rival")
+    if not rival_gambits:
+        warnings.append("GAMBIT: no gambit acts on the rival, so the rival is untouchable; mark one {'rival': True} and make it change a RIVAL_KEYS value")
+    states = max(1, stat.get("states", 0))
+    for gid in gambits:
+        share = stat.get("gambit_states", {}).get(gid, 0) / states
+        if share < GAMBIT_OFFER_MIN:
+            warnings.append(
+                f"GAMBIT: {gid} is offered in {share:.0%} of states (under {GAMBIT_OFFER_MIN:.0%}); a gambit that is rarely on the table "
+                "cannot catch the player's off-menu ideas. Widen when it is legal, or it is a lever, not a gambit"
+            )
+    for gid in rival_gambits:
+        if not rival_keys:
+            continue
+        played = stat.get("gambit_played", {}).get(gid, 0)
+        if played and not stat.get("rival_touched", {}).get(gid):
+            flags.append(
+                f"GAMBIT: {gid} is marked rival but in {played} plays it never changed any of RIVAL_KEYS {rival_keys}; "
+                "the rival is untouchable in practice. Make the gambit move, delay, blind or weaken the rival"
+            )
+    return flags, warnings
+
+
 def run_universal(g, B, engine_path=None):
     flags, warnings = [], []
     try:
         obs = observe(g, B)
     except Exception as e:  # noqa: BLE001
         return [f"CRASH: the observation pass failed: {type(e).__name__}: {e}"], warnings, {}
+    s_first, _ = B._new(g, 1)
+    gf, gw = gambit_problems(g, obs["stat"], s_first)
+    flags += gf
+    warnings += gw
     names = {
         "json": "JSON", "state": "STATE", "bounds": "BOUNDS", "leak": "LEAK", "text": "TEXT",
         "status": "STATUS", "hidden": "GATE-HIDDEN", "ungated": "GATE-OFFERED", "crash": "CRASH", "after_end": "TEXT",
@@ -909,5 +972,12 @@ def run_universal(g, B, engine_path=None):
     info = {
         "observed_games": 80, "fuzz_steps": tried, "numeric_keys": sorted(obs["minmax"]),
         "forced_share": round(forced_share, 2), "max_choices": st["max_choices"], "hidden_seen": st["hidden_seen"],
+        "gambits": {
+            gid: {
+                "offered_share": round(st["gambit_states"].get(gid, 0) / max(1, st["states"]), 2),
+                "played": st["gambit_played"].get(gid, 0),
+                "rival_touched": st["rival_touched"].get(gid, 0),
+            } for gid in (getattr(g, "GAMBITS", {}) or {})
+        },
     }
     return flags, warnings, info

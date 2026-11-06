@@ -1073,6 +1073,54 @@ class DamagedStateTests(unittest.TestCase):
                 self.assertIn("state_unchanged", r.stderr, args)
 
 
+class GambitTests(unittest.TestCase):
+    """GAMBITS and RIVAL_KEYS: the player can act off the loop, and the rival can be touched."""
+
+    stat_ok = {"states": 100, "gambit_states": {"windbreak": 60}, "gambit_played": {"windbreak": 20}, "rival_touched": {"windbreak": 9}}
+
+    def game(self, gambits, rival_keys=("wind",)):
+        class V(Lantern):
+            GAMBITS = gambits
+            RIVAL_KEYS = list(rival_keys)
+        return V()
+
+    def test_the_example_declares_a_rival_gambit_and_is_clean(self):
+        g = Lantern()
+        s0, _ = B._new(g, 1)
+        flags, warnings = K.gambit_problems(g, self.stat_ok, s0)
+        self.assertEqual((flags, warnings), ([], []))
+
+    def test_no_gambits_is_a_warning_not_a_flag(self):
+        flags, warnings = K.gambit_problems(self.game({}), {"states": 10}, {})
+        self.assertEqual(flags, [])
+        self.assertTrue(any("no GAMBITS" in w for w in warnings))
+
+    def test_a_rival_gambit_that_never_touches_the_rival_is_a_flag(self):
+        stat = dict(self.stat_ok, rival_touched={})
+        flags, _ = K.gambit_problems(self.game({"windbreak": {"rival": True}}), stat, {"wind": [1]})
+        self.assertTrue(any("never changed any of RIVAL_KEYS" in f for f in flags), flags)
+
+    def test_a_rival_gambit_needs_rival_keys_and_they_must_exist(self):
+        flags, _ = K.gambit_problems(self.game({"windbreak": {"rival": True}}, rival_keys=()), self.stat_ok, {"wind": [1]})
+        self.assertTrue(any("RIVAL_KEYS is empty" in f for f in flags), flags)
+        flags, _ = K.gambit_problems(self.game({"windbreak": {"rival": True}}, rival_keys=("gale",)), self.stat_ok, {"wind": [1]})
+        self.assertTrue(any("not a key of the state" in f for f in flags), flags)
+
+    def test_a_rarely_offered_gambit_and_an_untouchable_rival_are_warnings(self):
+        stat = dict(self.stat_ok, gambit_states={"windbreak": 5})
+        _, warnings = K.gambit_problems(self.game({"windbreak": {}}), stat, {"wind": [1]})
+        self.assertTrue(any("offered in 5%" in w for w in warnings), warnings)
+        self.assertTrue(any("untouchable" in w for w in warnings), warnings)
+
+    def test_observe_records_offers_plays_and_rival_touches(self):
+        obs = K.observe(Lantern(), B, games=12)
+        st = obs["stat"]
+        self.assertGreater(st["gambit_states"].get("windbreak", 0), 0)
+        self.assertGreater(st["gambit_played"].get("windbreak", 0), 0)
+        self.assertGreater(st["rival_touched"].get("windbreak", 0), 0)
+        self.assertLessEqual(st["rival_touched"]["windbreak"], st["gambit_played"]["windbreak"])
+
+
 class InOrderTests(unittest.TestCase):
     def test_in_order_passes_in_order_and_fails_out_of_order(self):
         t = K.T(Lantern(), B)

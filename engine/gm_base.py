@@ -50,6 +50,13 @@ Contract (everything below `options` is checked by `check`):
     GATES      {"light": {"oil": "LIGHT_COST", "_if": fn(game, s)}}: when each priced or gated action must be
                offered. `check` fails if it is missing when affordable or offered when not. A key may be a state key
                or a DERIVED name.
+    GAMBITS    {"raid": {"rival": True}, "dig_in": {}}: the risky moves off the main loop that the setting invites
+               (raid the rival's camp, run the blockade, bribe the inspector). Each id is in ACTIONS, shows its odds
+               or its stake in its label, and is offered often enough to absorb a player's off-menu idea. One marked
+               "rival" must change a RIVAL_KEYS value when played; `check` fails if it never does. No GAMBITS is a
+               warning: the player can only play the loop, and every idea of theirs gets "the game cannot".
+    RIVAL_KEYS ["ready", "riders"]: the state keys that describe the rival (position, readiness, strength, mood).
+               Required when a gambit is marked "rival".
     rule_tests the executable spec: one test per rule line, built on class gm_checks.T. `check` fails if a rule
                has no test or a test fails.
     resample_hidden(s, rng)  for games with hidden facts: redraw them consistent with what the player has seen, so
@@ -227,6 +234,8 @@ class Game:
     REACH = {}      # {"rival": 70} or {"oil": ("<=", 0)}: values the sheet promises can happen; never seen is a bug
     GATES = {}      # {"light": {"oil": "LIGHT_COST", "_if": fn(game, s)}}: when an action must be offered
     DERIVED = {}    # {"best": fn(game, s)}: computed numbers usable in BOUNDS and REACH
+    GAMBITS = {}    # {"raid": {"rival": True}, "dig_in": {}}: risky moves off the main loop; one acts on the rival
+    RIVAL_KEYS = [] # state keys that describe the rival; a "rival" gambit must change one of them when played
 
     # (required by `check` when RULES is declared) One test per rule line. Return [(rule_no, "name", fn)];
     # fn(t) builds a state with t.fresh(...), calls t.apply / t.advance / t.step and asserts with t.eq / t.ok.
@@ -988,6 +997,12 @@ def _check(g, free=False, engine_path=None, quick=False):
                 warnings.append(f"TAG: {t} fires in {frac:.0%} of heuristic games (rare; fine for a twist, a problem for a core rule)")
     else:
         warnings.append("TAGS not declared, so unreachable twists and levers cannot be detected")
+
+    for gid in getattr(g, "GAMBITS", {}) or {}:
+        if g.ACTIONS and gid not in g.ACTIONS:
+            flags.append(f"GAMBIT: {gid} is declared in GAMBITS but not in ACTIONS")
+        elif gid in offered and hr["stats"]["picked"][gid] == 0 and lr["stats"]["picked"][gid] == 0:
+            warnings.append(f"GAMBIT: nobody ever plays {gid}; a gambit no sensible player takes is a decoy, so make its prize worth the risk")
 
     for a in sorted(offered):
         h_pick, l_pick = hr["stats"]["picked"][a], lr["stats"]["picked"][a]

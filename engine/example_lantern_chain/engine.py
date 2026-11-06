@@ -2,7 +2,8 @@
 
 A hand-made example, not a roll result. It shows the shape, not the content: a wind rival that acts
 every night with a readable habit, a clock, a midpoint storm and unlock, a loss lever, merged
-options (one "light" id, one option per dark lantern), CONSTANTS plus a RULES template so the sheet
+options (one "light" id, one option per dark lantern), a gambit against the rival (the windbreak:
+a priced roll that turns the wind for a night), CONSTANTS plus a RULES template so the sheet
 cannot drift from the code, and TAGS so `check` can prove every twist is reachable.
 
 Copy the structure. Change the nouns, the rival's habit, the win condition and the primary number.
@@ -35,6 +36,8 @@ class G(Game):
         "SIGNAL_COST": 3,
         "SIGNAL_MAX": 6,
         "SLED_GAIN": 6,
+        "WINDBREAK_COST": 2,
+        "WINDBREAK_NEED": 4,
         "STALL_P": 0.2,
         "GOAL": 34,
         "_START_LIT": 3,
@@ -46,7 +49,7 @@ class G(Game):
 
     RULES = """
 1. {LANTERNS} lanterns line the ridge, numbered from camp. Each night take one action: light a dark lantern, shield a lit one, or haul oil.
-2. Lighting costs {LIGHT_COST} oil. Shielding is free and keeps that lantern lit through tonight's wind.
+2. Lighting costs {LIGHT_COST} oil. Shielding is free and keeps that lantern lit through tonight's wind. A windbreak costs {WINDBREAK_COST} oil: roll {WINDBREAK_NEED}+ and the wind turns, snuffing nothing tonight.
 3. Hauling: roll {HAUL_NEED}+ on a d{DIE} to bring back {HAUL_GAIN} oil, otherwise {HAUL_FAIL}.
 4. You start with {START_OIL} oil. At dusk each lit lantern burns 1 oil. Oil below 0 puts every lantern out and the column turns back.
 5. The wind snuffs one unshielded lantern a night, stepping along the ridge by a fixed hidden stride. On {STALL_P:.0%} of nights it lingers where it was.
@@ -55,8 +58,11 @@ class G(Game):
 8. After two failed hauls in a row the depot sends a sled once: a sure {SLED_GAIN} oil. Goal: column at {GOAL} within {NIGHTS} nights.
 """
 
-    ACTIONS = ["light", "shield", "haul", "signal", "sled"]
-    TAGS = ["storm", "signal", "sled", "lantern1_out", "oil_crisis", "stall"]
+    ACTIONS = ["light", "shield", "haul", "windbreak", "signal", "sled"]
+    TAGS = ["storm", "signal", "sled", "windbreak", "lantern1_out", "oil_crisis", "stall"]
+    # risky moves off the main loop; the windbreak acts on the rival (the wind), so it must change a RIVAL_KEYS value
+    GAMBITS = {"windbreak": {"rival": True}}
+    RIVAL_KEYS = ["wind"]
     # every number or board the player must manage, including ones kept off the status line (3 at most)
     TRACKED = ["oil", "column", "lit"]
 
@@ -69,6 +75,7 @@ class G(Game):
         "light": {"oil": "LIGHT_COST", "_if": lambda g, s: not all(s["lit"])},
         "signal": {"oil": "SIGNAL_COST", "_turn": "SIGNAL_NIGHT"},
         "sled": {"fails": 2, "!sled_used": 1},
+        "windbreak": {"oil": "WINDBREAK_COST", "_if": lambda g, s: any(s["lit"][i] for i in s["wind"])},
     }
 
     @property
@@ -110,6 +117,29 @@ class G(Game):
             events = t.advance(s, turn=2, chances=[0.99])
             t.has(events, "The wind leaned on lantern 1. The shield held.")
             t.ok(s["lit"][0], "a shielded lantern survives the wind")
+            # the windbreak: a priced roll against the wind itself
+            s = t.fresh(oil=10, wind=[0, 1], lit=[True] * 5)
+            t.eq(t.label(s, "windbreak"), f"Raise a windbreak (-{C['WINDBREAK_COST']} oil, roll {C['WINDBREAK_NEED']}+: the wind snuffs nothing tonight)")
+            events = t.apply(s, "windbreak", dice=[C["WINDBREAK_NEED"]])
+            t.eq(s["oil"], 10 - C["WINDBREAK_COST"], "the windbreak costs its oil")
+            t.eq(s["wind"], [], "a good roll turns the wind: no target tonight")
+            t.has(events, "The wind turns on the windbreak. Nothing is snuffed tonight.")
+            t.eq(t.status(s), f"Oil 8 | Column 0/{C['GOAL']} | Ridge ##### | Wind -", "the status shows a turned wind")
+            t.ok(not t.offered(s, "shield", lantern=0), "nothing to shield once the wind is turned")
+            events = t.advance(s, turn=2, chances=[0.99, 0.99])
+            t.ok(all(s["lit"]), "every lantern survives the night")
+            t.has(events, "The windbreak held: no lantern was snuffed.")
+            s = t.fresh(oil=10, wind=[0, 1], lit=[True] * 5)
+            events = t.apply(s, "windbreak", dice=[C["WINDBREAK_NEED"] - 1])
+            t.eq(s["oil"], 10 - C["WINDBREAK_COST"], "a failed windbreak still costs its oil")
+            t.eq(s["wind"], [0, 1], "a failed windbreak leaves the wind on its targets")
+            t.has(events, "The windbreak collapses before dusk.")
+            s = t.fresh(oil=10, wind=[4], lit=[True, True, True, False, False])
+            t.ok(not t.offered(s, "windbreak"), "no windbreak when the wind aims at a dark lantern (nothing to save)")
+            s = t.fresh(oil=C["WINDBREAK_COST"] - 1, wind=[0])
+            t.ok(not t.offered(s, "windbreak"), "a windbreak needs its oil")
+            s = t.fresh(oil=C["WINDBREAK_COST"], wind=[0])
+            t.ok(t.offered(s, "windbreak"), "exactly enough oil is enough")
 
         def r3(t):
             s = t.fresh(oil=5, wind=[4])
@@ -297,6 +327,9 @@ class G(Game):
                           "args": {"lantern": i}, "group": "Shield a lantern"})
         o.append({"id": "haul", "label": f"Haul oil from the depot (roll {C['HAUL_NEED']}+ for +{C['HAUL_GAIN']})",
                   "args": {}})
+        if s["oil"] >= C["WINDBREAK_COST"] and any(s["lit"][i] for i in s["wind"]):
+            o.append({"id": "windbreak", "args": {},
+                      "label": f"Raise a windbreak (-{C['WINDBREAK_COST']} oil, roll {C['WINDBREAK_NEED']}+: the wind snuffs nothing tonight)"})
         if s["_turn"] >= C["SIGNAL_NIGHT"] and s["oil"] >= C["SIGNAL_COST"]:
             spend = [c for c in (C["SIGNAL_COST"], C["SIGNAL_MAX"]) if s["oil"] >= c]
             o.append({"id": "signal", "label": "Signal a rush (spend oil: double or triple tonight's advance)",
@@ -325,6 +358,15 @@ class G(Game):
                 s["oil"] += C["HAUL_FAIL"]
                 s["fails"] += 1
                 ev.append(f"{txt}. Oil +{C['HAUL_FAIL']}.")
+        elif a == "windbreak":
+            s["oil"] -= C["WINDBREAK_COST"]
+            ok, txt = rng.check(C["WINDBREAK_NEED"], C["DIE"], "windbreak")
+            if ok:
+                s["wind"] = []  # the rival's move is undone: this is what makes it a rival gambit
+                self.hit("windbreak")
+                ev.append(f"{txt}. The wind turns on the windbreak. Nothing is snuffed tonight.")
+            else:
+                ev.append(f"{txt}. The windbreak collapses before dusk.")
         elif a == "signal":
             s["oil"] -= args["oil"]
             s["signal"] = 3 if args["oil"] == C["SIGNAL_MAX"] else 2  # lit-ok: triple or double, as the sheet says
@@ -341,7 +383,9 @@ class G(Game):
     def advance(self, s, rng):
         C = self.C
         ev = []
-        # wind hits tonight's targets
+        # wind hits tonight's targets (none, if a windbreak turned it)
+        if not s["wind"]:
+            ev.append("The windbreak held: no lantern was snuffed.")
         for i in s["wind"]:
             if not s["lit"][i]:
                 ev.append(f"The wind found lantern {i + 1} already dark.")
@@ -395,7 +439,7 @@ class G(Game):
 
     def status_line(self, s):
         ridge = "".join("#" if on else "." for on in s["lit"])
-        wind = ",".join(str(i + 1) for i in s["wind"])
+        wind = ",".join(str(i + 1) for i in s["wind"]) or "-"
         return f"Oil {s['oil']} | Column {s['column']}/{self.C['GOAL']} | Ridge {ridge} | Wind {wind}"
 
     def check_end(self, s):
@@ -421,6 +465,9 @@ class G(Game):
             return "sled"
         if s["oil"] <= burn + 1:
             return "haul"
+        threatened = [i for i in s["wind"] if s["lit"][i] and i < run_len]
+        if "windbreak" in ids and len(threatened) >= 2 and s["oil"] >= burn + C["WINDBREAK_COST"] + 2:
+            return "windbreak"  # a shield saves one lantern; in the storm the windbreak can save both
         for o in options:
             if o["id"] == "shield" and o["args"]["lantern"] < run_len:
                 return o

@@ -47,7 +47,7 @@ python engine.py selftest 300 <policy>   one policy: random | heuristic | lookah
 python engine.py log                     every die rolled, in order
 ```
 
-Bands: random wins under 35 percent, heuristic 25 to 45 percent, look-ahead 50 to 80 percent (a warning). An engine declares CONSTANTS, RULES, ACTIONS and TAGS so `check` can catch sheet drift, hidden actions and unreachable twists.
+Bands: random wins under 35 percent, heuristic 25 to 45 percent, look-ahead 60 to 90 percent (a warning). An engine declares CONSTANTS, RULES, ACTIONS and TAGS so `check` can catch sheet drift, hidden actions and unreachable twists, and GAMBITS plus RIVAL_KEYS so `check` can prove the player has risky moves off the loop and that one of them really touches the rival.
 
 ## Tests
 
@@ -66,4 +66,6 @@ Change `gm_base.py` or `gm_checks.py` only with the suite green. To add a bug cl
 - A new game gets an independent review (Step 7) before it is presented, repeated with a fresh reviewer until a round finds no S1 or S2 and at most two S3. Measured on 8 attacked games: no wrong arithmetic; about four wording or sheet slips a game after two reviews. Every bug it finds in the harness becomes a mutant or a unit test first.
 - A turn whose JSON carries a non-empty `integrity` list is an engine bug. Stop, fix, recheck; never narrate over it.
 - A game must make sense to a stranger (skill limits 9 and 10). Feelings and standings (morale, trust, nerve, suspicion) are never bought, sold or priced; a rolled number is not a currency just because it was rolled; action labels are plain verbs, not code words. `check` flags the worst case as SENSE, warns on MOVE (a menu number needing two answers) and STATUS (more than 5 numbers), and the cold read (Step 7, 4a) catches the rest. Origin: Dim Ledger (2026-10-16) sold crew morale for Light at four "consoles" and passed `check` and two QA rounds, because both test the engine, not whether the game makes sense.
+- The player can push back (skill limit 11). Every new game has two or three gambits, risky moves off the loop that the setting invites, one of them against the rival. `check` flags a rival gambit that never changes a RIVAL_KEYS value and warns on no gambits, a rarely offered gambit, or one no policy plays; a GAMBIT warning is never accepted for a new game. Origin: Low Wells (2026-11-06), four player ideas in a row met "the game cannot".
+- The finish is rolled (FINISH d4: final-roll, photo-finish, collapse, cliff), never flat.
 - Sessions are disposable. Library is the keeper. Only save after finishing a game.

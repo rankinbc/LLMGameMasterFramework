@@ -25,7 +25,8 @@
     "MAP": 14,
     "TONE": 12,
     "CURRENCY": 12,
-    "TRACKED": 3
+    "TRACKED": 3,
+    "FINISH": 4
   },
   "traits": {
     "primary_bucket": {
@@ -156,7 +157,7 @@
       ]
     },
     "ending_shape": {
-      "roll": null,
+      "roll": "FINISH",
       "about": "How the last third resolves.",
       "values": [
         "flat",
@@ -172,10 +173,7 @@
         "collapse": "player lost control late after leading",
         "cliff": "sudden hard-threshold win or loss"
       },
-      "roll_exclude": [
-        "flat"
-      ],
-      "hint": "Add a roll axis FINISH: final-roll, photo-finish, collapse or cliff (never flat). The generator designs the last third for the rolled shape; profile and autopsy verify it."
+      "hint": "Rolled as FINISH (d4: final-roll, photo-finish, collapse, cliff; never flat). The generator designs the last third for the rolled shape; profile and autopsy verify it. A flat ending with a FINISH roll behind it is BENT."
     },
     "midpoint_event": {
       "roll": null,

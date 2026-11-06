@@ -20,3 +20,5 @@
 2026-10-14 | Bad Quarter | FORM=12 SET=25 LOOP=26 TWIST=23 | actions=send,push,rest,night_run,overhaul,haul_crate,fence_crate | win | 16
 2026-10-14 | Greywater Wing | FORM=16 SET=14 LOOP=15 TWIST=5 | actions=fly,lot,refit,tower,double,finale | win | 16
 2026-10-14 | Trophy Route | FORM=19 SET=55 LOOP=32 TWIST=38 | actions=advance,post_bus,post_insp,pull,hold,express,ride | win | 14
+2026-10-20 | Closure Order | FORM=6 SET=2 LOOP=29 TWIST=1 CURRENCY=5 | actions=hop,skip,hold,seal | loss | 12
+2026-11-06 | Low Wells | FORM=3 SET=17 LOOP=2 TWIST=15 CURRENCY=7 | actions=march,sail,question,lie,hire | win | 11
