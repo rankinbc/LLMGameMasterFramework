@@ -49,14 +49,14 @@ def load_games(path):
     if not os.path.exists(path):
         return games
     with open(path, encoding="utf-8") as f:
-        for n, line in enumerate(f, 1):
-            line = line.strip()
+        for n, raw in enumerate(f, 1):
+            line = raw.strip()
             if not line:
                 continue
             try:
                 g = json.loads(line)
             except ValueError as e:
-                raise SystemExit(f"{path} line {n}: not JSON ({e})")
+                raise SystemExit(f"{path} line {n}: not JSON ({e})") from None
             g.setdefault("order", n)
             games.append(g)
     games.sort(key=lambda g: g["order"])

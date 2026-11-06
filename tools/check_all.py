@@ -19,7 +19,7 @@ GM_ROOT = os.path.dirname(HERE)
 
 def run_one(path, full):
     cmd = [sys.executable, path, "check", "--free"] if full else [sys.executable, path, "check", "--quick"]
-    r = subprocess.run(cmd, capture_output=True, text=True, cwd=os.path.dirname(path), timeout=1200)
+    r = subprocess.run(cmd, capture_output=True, text=True, cwd=os.path.dirname(path), timeout=1200, check=False)
     try:
         return json.loads(r.stdout)
     except ValueError:

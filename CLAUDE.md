@@ -52,11 +52,12 @@ Bands: random wins under 35 percent, heuristic 25 to 45 percent, look-ahead 60 t
 ## Tests
 
 ```
-python -m unittest discover -s tests -v     from the GM folder; about a minute
+python -m unittest discover -s tests -v     from the GM folder; about two minutes
+python -m ruff check                        lint, configured in ruff.toml (sessions, library and output are excluded)
 python tools/check_all.py "library/*/engine.py"
 ```
 
-Change `gm_base.py` or `gm_checks.py` only with the suite green. To add a bug class, add a mutant to `tests/test_mutants.py` first and watch it fail.
+Change `gm_base.py` or `gm_checks.py` only with the suite green and ruff clean. The skill runs from `~/.claude/skills/play/SKILL.md`; `skill/play/SKILL.md` is the versioned copy, and a unit test fails when the two differ (copy the live file over). To add a bug class, add a mutant to `tests/test_mutants.py` first and watch it fail.
 
 ## Rules of the house
 

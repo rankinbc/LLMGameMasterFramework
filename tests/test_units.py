@@ -3,7 +3,6 @@
 Run:  python -m unittest discover -s tests -v        (from the GM folder)
 """
 
-import copy
 import importlib.util
 import json
 import os
@@ -260,10 +259,10 @@ class SamenessTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             path = os.path.join(d, "fp.jsonl")
             script = os.path.join(GM, "tools", "sameness.py")
-            r = subprocess.run([sys.executable, script, "add", json.dumps(self.game(1)), "--file", path], capture_output=True, text=True)
+            r = subprocess.run([sys.executable, script, "add", json.dumps(self.game(1)), "--file", path], capture_output=True, text=True, check=False)
             self.assertEqual(r.returncode, 0, r.stderr)
             self.assertEqual(self._lines(path), 1)
-            bad = subprocess.run([sys.executable, script, "add", json.dumps(self.game(2, rival_type="dragon")), "--file", path], capture_output=True, text=True)
+            bad = subprocess.run([sys.executable, script, "add", json.dumps(self.game(2, rival_type="dragon")), "--file", path], capture_output=True, text=True, check=False)
             self.assertNotEqual(bad.returncode, 0)
             self.assertEqual(self._lines(path), 1, "a rejected fingerprint must not be written")
 
@@ -439,7 +438,7 @@ class CliTests(unittest.TestCase):
 
     def run_cli(self, cwd, *args):
         env = dict(os.environ, GM_SERIAL="1")
-        return subprocess.run([sys.executable, EXAMPLE, *args], capture_output=True, text=True, cwd=cwd, env=env, timeout=600)
+        return subprocess.run([sys.executable, EXAMPLE, *args], capture_output=True, text=True, cwd=cwd, env=env, timeout=600, check=False)
 
     def test_play_replay_autopsy(self):
         with tempfile.TemporaryDirectory() as d:
@@ -764,7 +763,7 @@ class CliHostileInputTests(unittest.TestCase):
 
     def run_cli(self, cwd, *args):
         env = dict(os.environ, GM_SERIAL="1")
-        return subprocess.run([sys.executable, EXAMPLE, *args], capture_output=True, text=True, cwd=cwd, env=env, timeout=600)
+        return subprocess.run([sys.executable, EXAMPLE, *args], capture_output=True, text=True, cwd=cwd, env=env, timeout=600, check=False)
 
     @staticmethod
     def read(d, name):
@@ -971,7 +970,7 @@ class ConstantNameTests(unittest.TestCase):
 class NoGameTests(unittest.TestCase):
     def test_a_missing_state_file_is_a_clean_error(self):
         with tempfile.TemporaryDirectory() as d:
-            r = subprocess.run([sys.executable, EXAMPLE, "status"], capture_output=True, text=True, cwd=d, timeout=120)
+            r = subprocess.run([sys.executable, EXAMPLE, "status"], capture_output=True, text=True, cwd=d, timeout=120, check=False)
             self.assertNotEqual(r.returncode, 0)
             self.assertIn("no game in progress", r.stderr)
             self.assertNotIn("Traceback", r.stderr)
@@ -992,7 +991,7 @@ class SwingCauseTests(unittest.TestCase):
 class DevCommandInputTests(unittest.TestCase):
     def run_cli(self, cwd, *args):
         env = dict(os.environ, GM_SERIAL="1")
-        return subprocess.run([sys.executable, EXAMPLE, *args], capture_output=True, text=True, cwd=cwd, env=env, timeout=300)
+        return subprocess.run([sys.executable, EXAMPLE, *args], capture_output=True, text=True, cwd=cwd, env=env, timeout=300, check=False)
 
     def test_bad_dev_input_is_a_clean_refusal(self):
         with tempfile.TemporaryDirectory() as d:
@@ -1044,7 +1043,7 @@ class ArgNormalizationTests(unittest.TestCase):
 class DamagedStateTests(unittest.TestCase):
     def run_cli(self, cwd, *args):
         env = dict(os.environ, GM_SERIAL="1")
-        return subprocess.run([sys.executable, EXAMPLE, *args], capture_output=True, text=True, cwd=cwd, env=env, timeout=300)
+        return subprocess.run([sys.executable, EXAMPLE, *args], capture_output=True, text=True, cwd=cwd, env=env, timeout=300, check=False)
 
     def test_a_truncated_state_file_is_named_and_replay_rebuilds_it(self):
         with tempfile.TemporaryDirectory() as d:
@@ -1119,6 +1118,21 @@ class GambitTests(unittest.TestCase):
         self.assertGreater(st["gambit_played"].get("windbreak", 0), 0)
         self.assertGreater(st["rival_touched"].get("windbreak", 0), 0)
         self.assertLessEqual(st["rival_touched"]["windbreak"], st["gambit_played"]["windbreak"])
+
+
+class SkillCopyTests(unittest.TestCase):
+    def test_the_repo_copy_of_the_skill_matches_the_live_one(self):
+        """The skill runs from ~/.claude/skills/play; the repo keeps a copy under skill/play so it is versioned.
+        After editing the live skill, copy it over (the test names the command)."""
+        live = os.path.join(os.path.expanduser("~"), ".claude", "skills", "play", "SKILL.md")
+        repo = os.path.join(GM, "skill", "play", "SKILL.md")
+        if not os.path.exists(live):
+            self.skipTest("no live skill on this machine")
+        with open(live, encoding="utf-8") as f:
+            a = f.read()
+        with open(repo, encoding="utf-8") as f:
+            b = f.read()
+        self.assertEqual(a.splitlines(), b.splitlines(), f"skill/play/SKILL.md is stale: copy {live} over it")
 
 
 class InOrderTests(unittest.TestCase):

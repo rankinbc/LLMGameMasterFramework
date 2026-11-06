@@ -192,7 +192,7 @@ MUTANTS = {
 
 
 def run_check(path, cwd):
-    r = subprocess.run([sys.executable, path, "check", "--quick"], capture_output=True, text=True, cwd=cwd, timeout=900)
+    r = subprocess.run([sys.executable, path, "check", "--quick"], capture_output=True, text=True, cwd=cwd, timeout=900, check=False)
     try:
         return json.loads(r.stdout)
     except ValueError:

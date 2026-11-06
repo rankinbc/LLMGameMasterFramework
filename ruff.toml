@@ -1,0 +1,15 @@
+# python -m ruff check        (from the GM folder; the regression suite does not run it, run it before a commit)
+line-length = 160
+target-version = "py311"
+extend-exclude = ["output", "sessions", "library"]
+
+[lint]
+select = ["E", "F", "W", "B", "UP", "SIM", "PL"]
+ignore = [
+    "E501",     # long lines: the lints and the sheet text are long on purpose
+    "PLR0911", "PLR0912", "PLR0913", "PLR0915", "PLR2004",  # the harness is one long procedural check; splitting it buys nothing
+    "PLR1714", "PLW0603",  # _LENIENT is a documented module switch for ablation
+    "PLC0415",  # gm_analysis and gm_mutate are imported where they are used to keep `step` fast
+    "SIM905",   # word lists are written as split strings so they read as prose
+    "UP031",    # the two percent formats build regexes; f-strings would need doubled braces
+]

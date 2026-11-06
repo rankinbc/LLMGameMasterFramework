@@ -14,7 +14,7 @@ Games are not all adventures. A game can be a kitchen, a hedge fund, a beehive, 
 
 **The engine owns:** every number, every die, price drift, the clock, the rival's policy, the event deck, legal actions, win and loss. It is a Python file the GM writes per game on top of `gm_base.py`.
 
-**The LLM owns:** the game concept, the rulesheet, option labels, narration, and mapping the player's free text onto an engine action id. The LLM never changes a number the engine did not output. If the player asks for something the engine has no action for, say so in one line and re-offer the options.
+**The LLM owns:** the game concept, the rulesheet, option labels, narration, and mapping the player's free text onto an engine action id. The LLM never changes a number the engine did not output. When the player asks for something that is not on the menu, look for the gambit that fits it (every game has two or three: see hard limit 11) and offer that in one line with its odds and stake; only when nothing fits, say in one line that the game cannot, name the nearest legal move, and re-offer the options.
 
 ## Paths
 
@@ -31,6 +31,7 @@ GM_ROOT\fingerprints.jsonl                one fingerprint per finished game (new
 GM_ROOT\variation_backlog.md              traits that stayed the same too long: candidates for new roll axes
 GM_ROOT\tools\sameness.py                 brief, add, report, backlog, phrases
 GM_ROOT\tools\check_all.py                run `check --quick` on many engines (library, old games)
+GM_ROOT\tools\coldread_prompt.md          the cold-read prompt: a fresh agent sees only the opening screen (Step 7, 4a)
 GM_ROOT\tests\                            regression suite for the harness (python -m unittest discover -s tests)
 ```
 
@@ -53,14 +54,17 @@ Write the game in plain, vivid, concise prose. Not caveman voice, even if cavema
 
 These are the product. Do not violate them.
 
-1. Rulesheet is 8 lines or fewer, about two mechanics and 40 words a line (45 is a hard limit). If it does not fit, cut a mechanic.
-2. At most 3 tracked numbers. A list of owned things counts as one if it has rules attached.
-3. One decision per turn. Show 2 to 5 numbered choices plus "or say anything else" (an option with `params` is one choice). The engine may offer more legal actions than that; collapse options that share a `group` into one choice and ask which target. Never hide a legal action to fit the count. An action that takes a number or a pick from the player (a bid, an amount, a placement) is one option with `params`; the GM asks for the value. Never make one option per value.
+1. Rulesheet is 8 lines or fewer, about 40 words a line (45 is a hard limit). The whole game has at most 5 mechanics (a market, a rival, a clock, a roll and a late lever each count as one) and the player learns at most 6 proper nouns (places, people, items). Eight dense lines are sixteen mechanics, which is how a game reads as gibberish. If it does not fit, cut a mechanic. A gambit (limit 11) that reuses the game's die and its rival is not a new mechanic; one that brings its own table is.
+2. At most 3 tracked numbers. A list of owned things counts as one if it has rules attached. Count what the player has to read, not what the code declares: a status field that shows four prices is four numbers. The status line shows 5 numbers or fewer.
+3. One decision per turn. Show 2 to 5 numbered choices plus "or say anything else" (an option with `params` is one choice). The engine may offer more legal actions than that; collapse options that share a `group` into one choice and ask which target. The gambits on offer are one numbered choice together ("Take a risk: raid the riders (need 5+, Men -4 on a miss) or force the march (Men -2)"), unless there is room to number them singly. Never hide a legal action to fit the count. An action that takes a number or a pick from the player (a bid, an amount, a placement) is one option with `params`; the GM asks for the value. Never make one option per value. One move takes one answer: after a menu number the player is asked for at most one thing (an amount or a target). If a verb and an amount would both be open ("lamp or cut, and how many"), give each verb its own number.
 4. No rule the player must memorize before turn 1 beyond the rulesheet. New information arrives through play, explained in one line when it matters.
 5. Length 12 to 25 turns. State the turn budget up front.
 6. Dice, when used, are shown: `roll 7 (need 5+) success`. The engine prints these; copy them.
 7. Status line every turn, same format every turn, 4 fields max. The engine prints it; copy it.
 8. The rulesheet and the engine must agree. The engine prints the sheet (`python engine.py rules`) from its CONSTANTS, so no number can drift. If the engine does something the sheet does not say, add a rule line or cut the behavior before presenting.
+9. The game makes sense. Every action is something the character could really do in the setting, said the way a person in that job would say it, and every number is something that exists there (a stock, a gauge, a crowd's state). Feelings and standings (morale, trust, nerve, suspicion, mood) are never bought, sold, priced or traded at a rate: actions change them as a consequence (feed the crew, give a day off, bribe a guard). A trade needs goods that are really traded and a payment the setting really uses. A number that came from a roll is not a currency just because it was rolled. Strange settings are welcome (a penguin colony, a vending machine, a dream under audit); the strangeness lives in the setting, and what people do in it stays ordinary. `check` flags the worst case (SENSE); the Sense card and the cold read catch the rest.
+10. The opening screen explains the game before it states the rules: who you are, what you do each turn and how you win, in plain words, then what each number is. Action labels say what happens ("Double the rations"), never a code word ("Lamp").
+11. The player can push back. Every game has two or three gambits: risky moves off the main loop that the setting invites (raid the rival's camp, run the blockade, bribe the inspector, force the march, sell the spare engine). Each stakes or spends a tracked number, shows its odds or its price in its label, pays more than a loop move when it lands, and is legal often enough to be there when the player reaches for it. At least one acts on the rival: it moves, delays, blinds, weakens or buys off the rival, and the engine proves it (`GAMBITS` and `RIVAL_KEYS`). A rival the player can only dodge is a weather report, not an opponent. Origin: Low Wells (2026-11-06), where the player tried to fortify a camp, ambush the hunter, double back and split the company, and heard "the game cannot" four times.
 
 ## Generation procedure (new game)
 
@@ -75,16 +79,16 @@ Read `GM_ROOT\taste_profile.md`. Read `GM_ROOT\engine\gm_base.py` (the contract)
 Use real randomness so you do not drift to favorites. Run one Bash command:
 
 ```bash
-echo "FORM=$((RANDOM%20+1)) SET=$((RANDOM%60+1)) ROLE=$((RANDOM%60+1)) LOOP=$((RANDOM%36+1)) CLOCK=$((RANDOM%24+1)) TWIST=$((RANDOM%48+1)) WIN=$((RANDOM%20+1)) MAP=$((RANDOM%14+1)) TONE=$((RANDOM%12+1)) CURRENCY=$((RANDOM%12+1)) TRACKED=$((RANDOM%3+1))"
+echo "FORM=$((RANDOM%20+1)) SET=$((RANDOM%60+1)) ROLE=$((RANDOM%60+1)) LOOP=$((RANDOM%36+1)) CLOCK=$((RANDOM%24+1)) TWIST=$((RANDOM%48+1)) WIN=$((RANDOM%20+1)) MAP=$((RANDOM%14+1)) TONE=$((RANDOM%12+1)) CURRENCY=$((RANDOM%12+1)) TRACKED=$((RANDOM%3+1)) FINISH=$((RANDOM%4+1))"
 ```
 
-Look each number up in the tables below. FORM is the most important roll: it decides what a turn physically is. SET and ROLE are flavor and may be bent hard to serve FORM and LOOP. CURRENCY decides what the game's primary tracked number is, so the economy is not always cash. TRACKED (1 to 3) is exactly how many numbers or boards the player must manage; the engine's `TRACKED` list must have that many entries. Record every roll, including TRACKED, in the fingerprint.
+Look each number up in the tables below. FORM is the most important roll: it decides what a turn physically is. SET and ROLE are flavor and may be bent hard to serve FORM and LOOP. CURRENCY decides what the game's primary tracked number is, so the economy is not always cash. TRACKED (1 to 3) is exactly how many numbers or boards the player must manage; the engine's `TRACKED` list must have that many entries. FINISH decides how the last third resolves (final-roll, photo-finish, collapse or cliff); it is rolled because left to habit the finish went flat in 60 percent of games. Record every roll, including TRACKED and FINISH, in the fingerprint.
 
 ### Step 3. Novelty check (two layers)
 
 **Roll layer.** Run `python GM_ROOT\tools\sameness.py novelty FORM=<n> SET=<n> CURRENCY=<n>` with the rolled numbers. It compares them with the last games' fingerprints and prints which axis to reroll (FORM and SET both matching one game, FORM in 3 of the last 5, CURRENCY in 2 of the last 3). Also check the library names for the same FORM and SET. Reroll only what it names; one reroll each, max.
 
-**Mechanics layer, after Step 4.** Run `python GM_ROOT\tools\sameness.py verbs <comma list of this game's action ids>`. If it prints REPACKAGE, more than half of the verbs appear in one earlier game: change the FORM interpretation or the LOOP until the verb set is different. Trading games always have buy and sell; they must differ in what else they have.
+**Mechanics layer, after Step 4.** Run `python GM_ROOT\tools\sameness.py verbs <comma list of this game's action ids>`. If it prints REPACKAGE, more than half of the verbs appear in one earlier game: change the FORM interpretation or the LOOP until the verb set is different. Trading games always have buy and sell; they must differ in what else they have. A plain verb always outranks verb novelty: never rename buy, sell, feed, repair or send into a code word to pass this check; change the loop instead.
 
 ### Step 4. Compose
 
@@ -92,9 +96,22 @@ Blend the rolled parts into one coherent game. The rolls are ingredients, not a 
 
 Invent one signature detail the tables did not give you: a named rival with a readable habit, an odd currency, a weather rule, a unique item, a recurring NPC with a want. Give the game a two or three word title.
 
-Pick the 1 to 3 tracked numbers. The first one, the number the player spends and fights over, is the CURRENCY roll. Cash or money may be a tracked number only when CURRENCY says Cash; otherwise it does not appear as a tracked number. Do not borrow the reference engine's setting, rival, hidden event or win shape: change the nouns and the structure. Decide the win condition from WIN, the failure condition from CLOCK, the turn budget. Decide the midpoint escalation and the midpoint unlock. Decide the rival's policy as a rule the engine can run.
+Pick the 1 to 3 tracked numbers. The first one, the number the player spends and fights over, is the CURRENCY roll. The roll says what the number is about, not that it is a currency: give it a physical form in this setting (Light becomes lamp oil, battery charge or candles; Trust becomes favors owed) that actions consume and actions replenish. Cash or money may be a tracked number only when CURRENCY says Cash; otherwise it does not appear as a tracked number, and nobody pays for things in it. Do not borrow the reference engine's setting, rival, hidden event or win shape: change the nouns and the structure. Decide the win condition from WIN, the failure condition from CLOCK, the turn budget. Decide the midpoint escalation and the midpoint unlock. Decide the rival's policy as a rule the engine can run.
 
-Decide three more things on purpose, before any code, and prefer the values `sameness.py brief` says have been missing: the rival's tell (shown before the player acts, shown after it lands, or hidden and inferable from history); the ending shape (final-roll, photo-finish, collapse or cliff, never a flat countdown: a photo-finish needs two numbers that converge, a collapse needs an escalation the player can slow but not stop, a cliff needs a hard event on a turn the player can plan around, a final-roll needs one decisive roll whose odds the player bought); and how many numbers the player tracks (the TRACKED roll, 1 to 3).
+Decide two more things on purpose, before any code, and prefer the values `sameness.py brief` says have been missing: the rival's tell (shown before the player acts, shown after it lands, or hidden and inferable from history) and how many numbers the player tracks (the TRACKED roll, 1 to 3). The ending shape comes from the FINISH roll and is designed in, never a flat countdown: a photo-finish needs two numbers that converge, a collapse needs an escalation the player can slow but not stop, a cliff needs a hard event on a turn the player can plan around, a final-roll needs one decisive roll whose odds the player bought. The finish is the last thing the player remembers; `profile` and the autopsy check whether it happened.
+
+**Gambits (hard limit 11).** Before any code, write two or three gambits. Start from what a person in this setting would be itching to try that the loop does not offer: hit back at the rival, take the short cut, spend the reserve, bluff. For each: the verb as that person says it, what it stakes or costs (a tracked number), the roll and its odds, what it pays when it lands, what it costs when it fails, and the setting fact that makes it possible. One must act on the rival; name the state key it changes (`RIVAL_KEYS`). A gambit that is never worth taking is a decoy, not a gambit: `check` warns when no policy ever plays it. A gambit the sheet does not state does not exist: it takes a rule line, or shares one with the roll it reuses.
+
+**The Sense card.** Before any code, write this into `notes.md` in plain sentences. It is how a roll-built blend becomes a game that makes sense:
+
+1. Job: "Each turn I, the <role>, <do what> so that <goal>." One sentence a stranger would care about.
+2. Each tracked number: what it is in the world, who holds it, what raises it, what lowers it.
+3. Each action: "I <verb> <object>", said the way a person in that job would say it; what it costs; what changes because of it; the fact of the setting that makes it possible.
+4. Trades: if the game buys and sells, name the goods, who sells them and the payment the setting accepts. Feelings and standings are never goods. If two numbers must convert, make the conversion something the character does ("spend a day's rations to hold a feast"), not a market with rates.
+5. Out loud: read the card to an imagined stranger. A line that needs "it is like" or "sort of" means the game is wrong, not the wording: rewrite the game.
+6. World card: five to eight plain facts the GM answers questions from during play, so every answer agrees with every other. The era and its kit (muskets or spears, gunboats or galleys, radios or runners). What one unit of each tracked number physically is ("Seats +6 is two boats of three", "one Light is a night's lamp oil"). Every one-way door and its reason in the world (why you cannot sail back west, why the inspector cannot be refused). Who the rival is, what they want, and why they cannot simply be killed or ignored. What the player would obviously try that the game does not allow, and the one line that explains why not.
+
+Dice-built oddness is the point (a rival who writes a serial, a lock that opens at midnight), but each odd piece must change a decision the player makes, and must be explained by one plain sentence. A piece that only adds a name or a rule the player has to memorize is cut.
 
 ### Step 5. Write the engine
 
@@ -118,6 +135,7 @@ Create `GM_ROOT\sessions\<YYYY-MM-DD>_<slug>\engine.py`. Model its shape on `eng
 - implement the midpoint escalation and unlock on `s["_turn"]`. The unlock (what becomes possible at the middle) and the late lever (a rescue or finisher for the last third) should be different actions; one action may do both only if it is still decisive late
 - implement a late lever. It must be reachable by a good player, not only after two failures in a row. Vary its form from game to game; it does not have to be a purchase
 - declare `BOUNDS` (the range of every numeric state value), `REACH` (every threshold the sheet names, so a clamp that hides it is caught) and `GATES` (what each priced or timed action needs, so a filter that hides it is caught)
+- declare `GAMBITS` (`{"raid": {"rival": True}, "force_march": {}}`: the two or three gambits from Step 4, every id in `ACTIONS`) and `RIVAL_KEYS` (the state keys that describe the rival). `check` fails when a rival gambit never changes a rival key, and warns when a gambit is on the table in under a quarter of states or when no policy ever plays it. Give each gambit the same care as a loop action: odds in the label, a rule test on both sides of its roll, a line in the heuristic that takes it when it is right
 - write `rule_tests()`: one test per rule line, in the order of the sheet, using `t.fresh`, `t.apply`, `t.advance`, `t.step` and scripted randomness (`dice=[...]`, `chances=[...]`, `choices=[...]`, consumed in the order the engine calls `rng`; `t.copy(s)` clones a state). Write each test from the rule's sentence, before looking at the code that implements it, and assert what the sentence says using the CONSTANTS (never a copied literal). Assert the wording of every end reason and every event the first time it fires (`t.has(events, "den")`), using the sheet's nouns: a stale word left over from an earlier draft ("the Wall stands" in a game of dens) and a wrong verb ("the Pilgrims turns back") are the most common text bugs, and only a test sees them. A test that pins a behavior the sheet does not state means the sheet is incomplete: add the rule to the sheet or remove the behavior. Show table, slot and lantern numbers the way the sheet counts them (1-based) in labels, events and in the `choices` of a param, and keep the engine's own indexes out of anything the player reads. Pin the order of events where one causes another (`t.in_order(events, ["sound", "gives you nothing"])`), because a result printed before its cause reads as a bug. Test the edges: the exact boundary of every threshold (oil at 0, a cost the player can just afford), the first and last turn, and both sides of every roll. `check` mutates your code and reports the changes no test noticed; aim for 75 percent or more caught
 - keep every piece of state JSON-native: lists not tuples, string keys not integer keys, no sets
 - end with `if __name__ == "__main__": run(G)`
@@ -130,8 +148,8 @@ cd "<session folder>" && python engine.py check
 
 `check` runs random, heuristic and look-ahead play, audits the sheet and the coverage, runs the universal bug checks and your rule tests, and mutates your code to measure how strong those tests are. It takes under a minute. It counts tuning rounds in `tune.count`, but only when the engine's logic or numbers changed since the last counted run: `check --free`, a rerun, and a wording edit are not rounds. Read the result:
 
-- **flags** must be empty before presenting. They cover crashes, difficulty bands, early wins and short games, a number missing from the sheet, an action or tag that is never offered or never fires, undeclared actions, a failing or missing rule test, state that breaks on a JSON round trip, stale or unformatted text, a changing status line, a value outside BOUNDS or never reaching REACH, an action missing or offered against its GATES, a `check_end` that ends the game before the last action, more than 3 TRACKED numbers, a rule line over 45 words, a wrong plural, a crash at a boundary value, nondeterminism, and rule tests that catch under half of the code mutations. A game with flags is never presented. If a flag looks wrong, fix the declaration or the code, not the check.
-- **warnings** are judgment calls. Read each one. A warning may be accepted when you can say in one line why it is part of the design (a rare twist, a decoy that is meant to tempt). Do not tune a warning away if doing so flattens the game.
+- **flags** must be empty before presenting. They cover crashes, difficulty bands, early wins and short games, a number missing from the sheet, an action or tag that is never offered or never fires, undeclared actions, a failing or missing rule test, state that breaks on a JSON round trip, stale or unformatted text, a changing status line, a value outside BOUNDS or never reaching REACH, an action missing or offered against its GATES, a `check_end` that ends the game before the last action, more than 3 TRACKED numbers, a rule line over 45 words, a wrong plural, a feeling priced like goods in the sheet, a label or an event (SENSE: "buy 2 Morale"), a crash at a boundary value, nondeterminism, and rule tests that catch under half of the code mutations. A game with flags is never presented. If a flag looks wrong, fix the declaration or the code, not the check.
+- **warnings** are judgment calls. Read each one. Three are about the player's patience, not the code, and need a better reason than "it works": MOVE (a menu number needs two answers), STATUS (more than 5 numbers on the status line) and GAMBIT (no gambits, a gambit rarely on the table, a rival nothing can touch). A GAMBIT warning is never accepted for a new game: fix the design. Fix the other two in the design, or write down in `notes.md` why this game is the exception. A warning may be accepted when you can say in one line why it is part of the design (a rare twist, a decoy that is meant to tempt). Do not tune a warning away if doing so flattens the game.
 - Bands: random wins under 0.35; heuristic wins 0.25 to 0.45; look-ahead wins 0.6 to 0.9 (a warning). Once round 4 has been counted, a band miss within 0.1 is accepted as a warning and no longer blocks presenting. Short games: at most 15 percent may end before 70 percent of the budget, and the heuristic's average length must be at least 75 percent of it. Tune the game, not the heuristic: the gap between look-ahead and heuristic is the signal, and a heuristic far below look-ahead is weak and makes `profile` and the autopsy unreliable.
 
 To tune, do not hand-roll loops. Try constants at several values at once:
@@ -149,6 +167,7 @@ Then edit `CONSTANTS` and rerun `check`. At round 4 `check` prints a TUNING CAP 
 1. **Read one whole game.** Run `python engine.py trace 7` and read it top to bottom, then `trace 7 random`, then a game where you play the trick you designed: `trace 7 --do <moves>` (moves are `id` or `id:key=value`, for example `haul,shield,signal:oil=3`). Count the player's moves: a game that ends on the budget has exactly as many `do:` lines as turns, and a trace that ends with the note "ended at dusk of turn N" lost its last action unless that dusk is a real loss. Look for text that contradicts the numbers, an event that fires at the wrong time, a rule the sheet promises that never appears, and a turn with only one sensible move. Fix what you find and rerun `check`.
 2. **Tension and dead weight.** Run `python engine.py profile` and `python engine.py ablate` (about a minute each). They give warnings, not verdicts. A flat opening, middle or finish, or few dilemmas, means add a second phase, a rival move or a late lever there. An action nobody misses is dead or dominated unless it is a decoy on purpose. `ablate` is noisy: differences under about 2 noise units mean nothing.
 3. **Read every wording.** Run `python engine.py texts` and read all of it once: every distinct event, option label, status line and end reason the game can produce, with numbers masked. Fix stale words from earlier drafts, wrong agreement ("the Pilgrims turns back"), awkward zeros ("+0 from 0 dens"), repeated phrases, and numbers shown 0-based.
+4a. **Cold read.** Write the opening screen exactly as Step 8 will print it (title, premise, your numbers, rules, goal, turn 1 with its options) into `notes.md`. Start a fresh general-purpose subagent with the prompt in `GM_ROOT\tools\coldread_prompt.md`, the screen pasted in and nothing else (no folder, no engine). It reads the screen as a player does. Apply the pass criteria in that file: no NONSENSE, at most two lines quoted as unclear, score 7 or higher, and its first move is reasonable under the sheet. On a fail, change the action, the number or the premise it called nonsense (rewording alone does not count), rerun `check --free`, and use a fresh reader. Three rounds at most; then simplify the game until it passes. Do this before the independent review, which assumes the game makes sense.
 4. **Independent review.** Before presenting a new game, start a general-purpose subagent with the Agent tool and the prompt in `GM_ROOT\tools\qa_prompt.md` (replace `<GAME_FOLDER>` with the session folder and `<GM_ROOT>` with the GM folder). It plays three games, sends bad input, and compares the sheet with the code, and reports bugs from S1 (corrupts play) to S4 (design smell). Fix every S1, S2 and S3 in the game, run `check --free`, and review again with a fresh reviewer, until a round reports no S1 or S2 and at most two S3 (three rounds at most). In the validation rounds the author-side checks left about three to six wording or sheet bugs per game for a fresh reader, and a second fresh reader still found three to six after the first round's fixes. Skip the review only when replaying a saved library game.
 5. **Odds are buyable.** No flat coin-flip actions. Every check the player makes has at least one purchase, position, or preparation that moves the target. A rival's own die is not a player check and need not be buyable; say on the sheet that it is the rival's pace.
 6. **State the sharp consequence.** If a rule combination creates a trap, it goes on the rulesheet in plain words.
@@ -165,7 +184,11 @@ Run `python engine.py rules` and use its output verbatim as the rules. Write `no
 
 ```
 <TITLE>
-<one sentence premise>
+<premise in three plain sentences: who you are, what you do each turn, how you win>
+
+Your numbers
+- <status label>: <what it is in the world, in a few plain words>
+- ... (one line per number on the status line, no new figures)
 
 Rules
 1. ...
@@ -174,27 +197,31 @@ Rules
 Goal: ...   Lose if: ...   Turns: N
 
 Turn 1 of N | <status from engine>
-<situation, 3 to 6 lines>
+<situation, 3 to 6 lines; one of them says how to read the options>
 1. <option label>
 2. ...
 or say anything else.
 ```
 
-Choices are the engine's `options` grouped for display: every option with the same `group` becomes one numbered choice ("Light a dark lantern: 4 or 5?"), and ungrouped options are one choice each. An option with `params` is one choice that asks for its value after the player picks it. Keep the engine's labels or shorten them; do not add options the engine did not offer, and do not drop one to fit the count. If more than 5 groups remain, show the 5 most relevant and say "other moves: <list>".
+Choices are the engine's `options` grouped for display: every option with the same `group` becomes one numbered choice ("Light a dark lantern: 4 or 5?"), and ungrouped options are one choice each. The gambits on offer (the ids in `GAMBITS`) share one numbered choice when the count is tight, each with its odds and stake in a few words. An option with `params` is one choice that asks for its value after the player picks it. Keep the engine's labels or shorten them; do not add options the engine did not offer, and do not drop one to fit the count. If more than 5 groups remain, show the 5 most relevant and say "other moves: <list>".
+
+The premise says what the player cannot do as well as what they can, in one clause, when the world makes the ban obvious to question ("the only way out is east: Vass holds the western sea"). A player who learns a one-way door on turn 6 by asking feels railroaded; one who read it on turn 1 feels the pressure.
 
 ## Turn procedure
 
 For every player message during a game:
 
-1. Map the message to an action id. A number picks that option. Free text maps to the nearest legal action; if none fits, say so in one line, re-show the options, and do not advance.
-2. Run `python engine.py step <id> '<args json>'`, copying `id` and `args` from the chosen option exactly. If the option has `params`, ask the player for each value first (state the allowed range or choices, for example "Spend 3 oil to double the advance, or 6 to triple it?") and add the values to the args. If an id has several options, the args pick one; an ambiguous call, args that contradict the option, or a value outside its range returns an error and does not advance. `step "#3"` picks the third entry of the engine's `options` list.
+1. Map the message to an action id. A number picks that option. Free text maps to the nearest legal action, gambits included: "ambush his riders with half the men" is the raid gambit, "dig in here" is the fortify gambit, and the GM says so in half a line before running it ("That is the raid: need 5+, Men -4 on a miss."). When the idea is bigger than any gambit, offer the closest one and ask; when nothing fits, say in one line that the game cannot and why (from the World card), name the nearest legal move, re-show the options, and do not advance. Never run a move the player did not clearly pick.
+2. Run `python engine.py step <id> '<args json>'`, copying `id` and `args` from the chosen option exactly. If the option has `params`, ask the player for each value first (state the allowed range or choices, for example "Spend 3 oil to double the advance, or 6 to triple it?") and add the values to the args. Ask for everything that is missing in one short line and accept a one-line answer ("sell 2"); never ask for the pieces one message at a time. If an id has several options, the args pick one; an ambiguous call, args that contradict the option, or a value outside its range returns an error and does not advance. `step "#3"` picks the third entry of the engine's `options` list.
 3. If the JSON has a non-empty `integrity` list, or the call returns an `engine crash` or `illegal action` error you did not expect, the engine has a bug. Do not narrate and do not invent numbers. Never run `python engine.py log` during a game: it prints hidden choices. Tell the player in one line that you are fixing the engine, fix `engine.py`, run `python engine.py check --free` (a fix after play started is not a tuning round), and continue from the saved state (a crashed step leaves `state.json` as it was). If the saved state itself is now wrong, run `python engine.py replay` to see whether the same moves still work under the fixed engine, and `replay --apply` to adopt the replayed game; otherwise say so and offer to restart with the same seed.
-4. Narrate from the JSON: the `events` list in order, numbers and roll text verbatim, in 1 to 3 lines of prose per event cluster. Add flavor around the events, never numbers the engine did not emit.
+4. Narrate from the JSON: the `events` list in order, numbers and roll text verbatim, in 1 to 3 lines of prose per event cluster. Add flavor around the events, never numbers the engine did not emit, and never a count the engine did not give: "Seats +6" is not "six boats" (that reads as one seat a boat), and three dead men are not named unless the player asks. Flavor obeys the World card: the kit of the era, the units, the one-way doors. A player caught one slip of each kind in Low Wells and trusted the game less each time.
 5. Print `Turn X of N | <status>` using the engine's status string, then the situation, then the engine's options numbered.
 
 Keep each turn under 180 words. If `ended` is set, go to Ending.
 
 On `status` or `rules`, run `python engine.py status` or `python engine.py rules` without advancing.
+
+**Questions during play.** Answer a question about the world or the rules in two or three short sentences from the World card, then re-show the status line and the options. Lead with the answer, not the mechanics. When the honest answer is "the game cannot", say what the nearest legal move is in the same breath. A player who asks three questions in a row is confused, not curious: restate the game in three plain lines (what you are, what a turn is, how you win) before anything else.
 
 ## Ending
 
@@ -532,6 +559,15 @@ Copy `GM_ROOT\library\<name>\engine.py` into a new session folder. Run `python e
 10. Nature documentary
 11. Noir
 12. Deadpan bureaucratic
+
+### FINISH (how the last third resolves) d4
+
+Never flat. The generator designs the last third for the rolled shape; `profile` warns on FLAT FINISH and the autopsy reports the turn the game was decided.
+
+1. Final-roll: one decisive late roll whose odds the player bought over the game (a trial, a storm crossing, a launch)
+2. Photo-finish: two numbers converge and the margin is one or two (the rival's tally and yours, the deadline and the delivery)
+3. Collapse: an escalation the player can slow but not stop; the win is getting out before it takes everything
+4. Cliff: a hard event on a known turn the player plans around (the gates close, the inspector arrives, the ice breaks)
 
 ### CURRENCY (what the primary tracked number is) d12
 

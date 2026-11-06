@@ -21,6 +21,7 @@ What is caught here, with no per-game code (a game may add BOUNDS, REACH, GATES,
 Rule tests (the executable spec) are written per game as Game.rule_tests(); see class T.
 """
 
+import contextlib
 import copy
 import hashlib
 import json
@@ -205,8 +206,8 @@ def _cv(g, x):
 def bounds_problems(g, s):
     out = []
     view = numeric_view(g, s)
-    for key, (lo, hi) in getattr(g, "BOUNDS", {}).items():
-        lo, hi = _cv(g, lo), _cv(g, hi)
+    for key, bound in getattr(g, "BOUNDS", {}).items():
+        lo, hi = _cv(g, bound[0]), _cv(g, bound[1])
         v = view.get(key)
         if v is not None and not (lo <= v <= hi):
             out.append(f"{key} is {v}, outside its declared range {lo} to {hi}")
@@ -371,10 +372,8 @@ def observe(g, B, games=80):
     rival_keys = list(getattr(g, "RIVAL_KEYS", []) or [])
     event_words = {}
     known_parts = [g.name, " ".join(getattr(g, "ACTIONS", [])), " ".join(getattr(g, "TAGS", []))]
-    try:
+    with contextlib.suppress(Exception):
         known_parts.append(g.rules())
-    except Exception:  # noqa: BLE001
-        pass
 
     def add(kind, msg):
         lst = probs.setdefault(kind, [])
@@ -575,8 +574,8 @@ def fuzz(g, B, obs, cap=4000):
 def _parse_script(script):
     """'haul,light:lantern=3,gift:steading=2:amount=4' -> [(id, {args})]"""
     out = []
-    for tok in (script or "").split(","):
-        tok = tok.strip()
+    for raw in (script or "").split(","):
+        tok = raw.strip()
         if not tok:
             continue
         parts = tok.split(":")
@@ -584,10 +583,8 @@ def _parse_script(script):
         for kv in parts[1:]:
             if "=" in kv:
                 k, v = kv.split("=", 1)
-                try:
+                with contextlib.suppress(ValueError):
                     v = json.loads(v)
-                except ValueError:
-                    pass
                 args[k] = v
         out.append((parts[0], args))
     return out
@@ -650,7 +647,7 @@ def determinism(g, B, engine_path=None):
     for hs in ("11", "222"):
         env = dict(os.environ, PYTHONHASHSEED=hs)
         try:
-            r = subprocess.run([sys.executable, path, "trace", "7", "--hash"], capture_output=True, text=True, env=env, timeout=120)
+            r = subprocess.run([sys.executable, path, "trace", "7", "--hash"], capture_output=True, text=True, env=env, timeout=120, check=False)
             outs.append(r.stdout.strip() or ("ERR " + r.stderr.strip()[-120:]))
         except Exception as e:  # noqa: BLE001
             outs.append(f"ERR {e!r}")
@@ -677,8 +674,8 @@ class T:
     def fresh(self, seed=1, **over):
         """A new state. Override top-level keys with keyword arguments; use hidden__key for hidden facts."""
         s, _ = self.B._new(self.g, seed)
-        for k, v in over.items():
-            v = copy.deepcopy(v)  # a test must never share an object with another state
+        for k, given in over.items():
+            v = copy.deepcopy(given)  # a test must never share an object with another state
             if "__" in k:
                 a, b = k.split("__", 1)
                 s[a][b] = v

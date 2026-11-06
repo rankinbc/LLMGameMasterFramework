@@ -16,7 +16,7 @@ import gm_base as B
 def paired(wa, wb):
     """Mean difference of two paired outcome lists, and its standard error."""
     k = len(wa)
-    diffs = [a - b for a, b in zip(wa, wb)]
+    diffs = [a - b for a, b in zip(wa, wb, strict=True)]
     d = sum(diffs) / k
     if k < 2:
         return d, 0.0
@@ -57,7 +57,7 @@ def turn_view(g, s, prng, k, extra=None):
     d, se = paired(wins[bi], wins[wi])
     spread = d if (d > 0 and d >= 2.5 * se) else 0.0
     by_opt = {}
-    for r, i in zip(rates, src):
+    for r, i in zip(rates, src, strict=True):
         by_opt[i] = max(by_opt.get(i, 0.0), r)
     ranked = sorted(by_opt.values(), reverse=True)
     second_gap = ranked[0] - ranked[1] if len(ranked) > 1 else 1.0
@@ -303,7 +303,7 @@ def ablate(g, n, k=4):
                 for a in [None] + names
             ]
             rates = [sum(1 for r in results if r.get("result") == "win") / n for results, _st, _tags in B._pmap(jobs)]
-            base_win, win_without = rates[0], dict(zip(names, rates[1:]))
+            base_win, win_without = rates[0], dict(zip(names, rates[1:], strict=True))
         except Exception:  # noqa: BLE001
             base_win, win_without = None, {}
     if base_win is None:

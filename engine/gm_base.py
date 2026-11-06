@@ -88,6 +88,7 @@ import importlib.util
 import inspect
 import itertools
 import json
+import math
 import os
 import random
 import re
@@ -356,7 +357,7 @@ def _clean_args(option, args):
                 raise IllegalAction(f"{name}={v!r} is not allowed for {option['id']!r}; use {_describe(spec)}", [])
             out[name] = match[0]
             continue
-        if isinstance(v, bool) or not isinstance(v, (int, float)) or v != v or v in (float("inf"), float("-inf")):
+        if isinstance(v, bool) or not isinstance(v, (int, float)) or math.isnan(v) or math.isinf(v):
             raise IllegalAction(f"{name}={v!r} must be a finite number ({_describe(spec)})", [])
         whole = isinstance(spec["min"], int) and isinstance(spec["max"], int) and isinstance(spec.get("step", 1), int)
         if whole:
@@ -415,7 +416,7 @@ def _expand(option, cap=8):
     out = []
     for combo in combos:
         args = dict(option.get("args", {}))
-        args.update(dict(zip(names, combo)))
+        args.update(dict(zip(names, combo, strict=True)))
         out.append({**option, "args": args})
     return out
 
@@ -619,7 +620,7 @@ def _lookahead(g, s, opts, prng, k):
         if hp_i not in order:
             order[-1] = hp_i
         fine = _evaluate(g, s, [cands[i] for i in order], prng, k * 2)
-        for i, sc in zip(order, fine):
+        for i, sc in zip(order, fine, strict=True):
             scores[i] = 1.0 + sc  # finalists outrank everything judged only once
     top = max(scores)
     best = [i for i, sc in enumerate(scores) if sc == top]
@@ -1120,10 +1121,10 @@ def _sweep(g, specs, n, lookahead=False):
     lines = []
     for combo in combos:
         g.C = dict(base)
-        g.C.update(dict(zip(keys, combo)))
+        g.C.update(dict(zip(keys, combo, strict=True)))
         r, _ = _selftest(g, n, "random")
         h, _ = _selftest(g, n, "heuristic")
-        label = " ".join(f"{k}={v}" for k, v in zip(keys, combo))
+        label = " ".join(f"{k}={v}" for k, v in zip(keys, combo, strict=True))
         flag_n = len(r["flags"]) + len(h["flags"])
         line = (
             f"{label} | random {r['win_rate']:.2f} | heuristic {h['win_rate']:.2f} turns {h['turn_avg']} "
@@ -1266,7 +1267,8 @@ def _run(game_cls):
 
     if cmd == "log":
         if os.path.exists(LOG_FILE):
-            print(open(LOG_FILE, encoding="utf-8").read())
+            with open(LOG_FILE, encoding="utf-8") as f:
+                print(f.read())
         return
 
     if cmd == "replay":
