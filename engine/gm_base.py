@@ -150,6 +150,7 @@ class RNG:
         v = self.d(sides)
         ok = v >= need
         tag = f" {label}" if label else ""
+        self.log[-1] += f" need {max(1, need)}+ {'ok' if ok else 'miss'}"  # marks a player check in the roll log; selftest counts them
         return ok, f"roll {v} (need {max(1, need)}+){tag} {'success' if ok else 'fail'}"
 
     def choice(self, seq):
@@ -669,7 +670,8 @@ def _play(g, seed, policy, k, prng, stats):
         else:
             pick = _norm(g.heuristic(s, opts, rng), opts)
         stats["picked"][pick["id"]] += 1
-        s, _, _ = _step(g, s, pick["id"], pick.get("args", {}))
+        s, _, log = _step(g, s, pick["id"], pick.get("args", {}))
+        stats["checks"] += sum(1 for ln in log if " need " in ln)  # dice the player rolled against a target
         if s["_turn"] > g.turns + 2:
             raise RuntimeError("turn counter ran past budget; check_end never fired")
     return s
@@ -680,7 +682,7 @@ def _play(g, seed, policy, k, prng, stats):
 
 def _run_games(g, seeds, policy, k):
     results = []
-    stats = {"n_opts": [], "offered": Counter(), "picked": Counter()}
+    stats = {"n_opts": [], "offered": Counter(), "picked": Counter(), "checks": 0}
     tag_games = Counter()
     for seed in seeds:
         prng = random.Random(4242 + seed)
@@ -718,6 +720,7 @@ def _summarize(g, n, policy, results, stats, tag_games, slack=0.0):
         "early_end_rate": round(early / n, 2),
         "options_avg": round(sum(stats["n_opts"]) / len(stats["n_opts"]), 1) if stats["n_opts"] else None,
         "options_max": max(stats["n_opts"]) if stats["n_opts"] else None,
+        "dice_per_game": round(stats.get("checks", 0) / played, 2),
         "sample_crashes": crashes[:3],
         "sample_reasons": sorted({r.get("reason", "") for r in results})[:8],
     }
@@ -759,6 +762,26 @@ def _summarize(g, n, policy, results, stats, tag_games, slack=0.0):
     summary["warnings"] = soft
     raw = {"stats": stats, "tag_games": tag_games, "played": played}
     return summary, raw
+
+
+DICE_RANDOM_MIN = 1.0   # the game has player checks when random play meets at least this many a game
+DICE_SENSIBLE_MIN = 0.5  # and sensible play that rolls fewer than this a game is dodging every one of them
+
+
+def dice_warning(random_summary, heuristic_summary, lookahead_summary=None):
+    """The game has rolls, but a sensible player never takes one: the drama is in the dice and nobody meets them.
+    Low Wells (2026-11-06): militia were the only roll and the winning line walked around every one."""
+    r = random_summary.get("dice_per_game") or 0
+    h = heuristic_summary.get("dice_per_game") or 0
+    lk = (lookahead_summary or {}).get("dice_per_game")
+    if r < DICE_RANDOM_MIN or h >= DICE_SENSIBLE_MIN:
+        return None
+    if lk is not None and lk >= DICE_SENSIBLE_MIN:
+        return None  # the search finds the rolls worth taking; the heuristic is just timid
+    return (
+        f"DICE: random play rolls {r:.1f} dice a game against a target, sensible play {h:.1f}; every roll is avoidable, so the "
+        "dice never come out. Put a roll on the main line, or make the risky move pay enough that a sensible player takes it"
+    )
 
 
 def _engine_file(g):
@@ -808,7 +831,7 @@ def _worker(payload):
         _, path, cls_name, C, banned, policy, k, seeds = payload
         g = _load_game(path, cls_name, C, banned)
         results, stats, tags = _run_games(g, seeds, policy, k)
-        return results, {"n_opts": stats["n_opts"], "offered": dict(stats["offered"]), "picked": dict(stats["picked"])}, dict(tags)
+        return results, {"n_opts": stats["n_opts"], "offered": dict(stats["offered"]), "picked": dict(stats["picked"]), "checks": stats["checks"]}, dict(tags)
     if kind == "profile":
         import gm_analysis
         _, path, cls_name, C, seeds, k = payload
@@ -841,12 +864,13 @@ def _selftest(g, n, policy, k=6, banned=None, slack=0.0):
             w = _workers()
             payloads = [("games", _engine_file(g), type(g).__name__, g.C, None, policy, k, list(range(1 + i, n + 1, w))) for i in range(w)]
             parts = _pmap([p for p in payloads if p[-1]])
-            results, stats, tags = [], {"n_opts": [], "offered": Counter(), "picked": Counter()}, Counter()
+            results, stats, tags = [], {"n_opts": [], "offered": Counter(), "picked": Counter(), "checks": 0}, Counter()
             for r, st, tg in parts:
                 results += r
                 stats["n_opts"] += st["n_opts"]
                 stats["offered"].update(st["offered"])
                 stats["picked"].update(st["picked"])
+                stats["checks"] += st.get("checks", 0)
                 tags.update(tg)
             results.sort(key=lambda r: r["seed"])
             return _summarize(g, n, policy, results, stats, tags, slack)
@@ -963,6 +987,10 @@ def _check(g, free=False, engine_path=None, quick=False):
             "One setting makes the game much easier or harder than the others; the sheet promises one game"
         )
 
+    dice = dice_warning(r, h, lk)
+    if dice:
+        warnings.append(dice)
+
     sheet_flags, sheet_warn = _sheet_flags(g)
     flags += sheet_flags
     warnings += sheet_warn
@@ -1069,9 +1097,9 @@ def _check(g, free=False, engine_path=None, quick=False):
         "verdict": "CLEAN" if not flags else "FLAGS",
         "flags": flags,
         "warnings": warnings,
-        "random": {"win": r["win_rate"], "turn_avg": r["turn_avg"], "reasons": r["sample_reasons"][:4]},
-        "heuristic": {"win": h["win_rate"], "turn_avg": h["turn_avg"], "reasons": h["sample_reasons"][:4]},
-        "lookahead": {"win": lk["win_rate"], "turn_avg": lk["turn_avg"]},
+        "random": {"win": r["win_rate"], "turn_avg": r["turn_avg"], "dice": r["dice_per_game"], "reasons": r["sample_reasons"][:4]},
+        "heuristic": {"win": h["win_rate"], "turn_avg": h["turn_avg"], "dice": h["dice_per_game"], "reasons": h["sample_reasons"][:4]},
+        "lookahead": {"win": lk["win_rate"], "turn_avg": lk["turn_avg"], "dice": lk["dice_per_game"]},
         "options": {"avg": h["options_avg"], "max": max(r["options_max"] or 0, h["options_max"] or 0)},
         "universal": uni_info,
     }

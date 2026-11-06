@@ -407,6 +407,9 @@ def observe(g, B, games=80):
                 if s.get("hidden"):
                     stat["hidden_seen"] = True
                 opts = g.options(s)
+                for c in s.get("cast") or []:  # a cast member's name is a word the player knows
+                    if isinstance(c, dict):
+                        known_parts.append(f"{c.get('name', '')} {c.get('role', '')}")
                 for o in opts:
                     for p in text_problems(o.get("label"), soft=False):
                         add("text", f"option label {o.get('label')!r} {p}")

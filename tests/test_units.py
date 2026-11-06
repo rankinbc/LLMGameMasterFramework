@@ -217,7 +217,7 @@ class SamenessTests(unittest.TestCase):
             "primary_bucket": "cash", "tracked_count": "3", "rival_type": "hunter", "rival_tell": "before",
             "win_shape": "threshold", "clock_shape": "upkeep", "opening_shape": "plan", "ending_shape": "flat",
             "midpoint_event": "none", "player_frame": "manager", "decision_unit": "pick-action",
-            "setting_family": "workplace", "turn_band": "mid",
+            "setting_family": "workplace", "turn_band": "mid", "story_level": "lean",
         }
         base.update(traits)
         return {"id": f"g{order}", "title": f"Game {order}", "order": order, "result": "win", "turns": 16,
@@ -265,6 +265,103 @@ class SamenessTests(unittest.TestCase):
             bad = subprocess.run([sys.executable, script, "add", json.dumps(self.game(2, rival_type="dragon")), "--file", path], capture_output=True, text=True, check=False)
             self.assertNotEqual(bad.returncode, 0)
             self.assertEqual(self._lines(path), 1, "a rejected fingerprint must not be written")
+
+    def test_novelty_names_the_axis_to_reroll(self):
+        games = [self.game(i) for i in range(1, 6)]  # FORM i, SET i+10
+        self.assertEqual(sameness.novelty(games, {"FORM": 9, "SET": 9, "CURRENCY": 9}), ["OK: no roll needs rerolling"])
+        out = sameness.novelty(games, {"FORM": 3, "SET": 13, "CURRENCY": 9})
+        self.assertTrue(any(o.startswith("REROLL SET") for o in out), out)
+        same_form = [self.game(i) for i in range(1, 6)]
+        for g in same_form[-3:]:
+            g["rolls"]["FORM"] = 7
+        out = sameness.novelty(same_form, {"FORM": 7, "SET": 50})
+        self.assertTrue(any(o.startswith("REROLL FORM") for o in out), out)
+        for g in same_form[-2:]:
+            g["rolls"]["CURRENCY"] = 4
+        out = sameness.novelty(same_form, {"FORM": 1, "SET": 50, "CURRENCY": 4})
+        self.assertTrue(any(o.startswith("REROLL CURRENCY") for o in out), out)
+
+    def test_verbs_flags_a_repackage_and_passes_a_fresh_set(self):
+        games = [dict(self.game(1), actions=["buy", "sell", "haul", "rest"]), dict(self.game(2), actions=["plant", "water"])]
+        self.assertTrue(sameness.verbs(games, ["buy", "sell", "haul", "bribe"])[0].startswith("REPACKAGE"))
+        self.assertTrue(sameness.verbs(games, ["buy", "march", "sail", "question"])[0].startswith("OK"))
+        self.assertTrue(sameness.verbs([self.game(1)], ["a", "b"])[0].startswith("OK: no earlier game"))
+
+
+class CastTests(unittest.TestCase):
+    """gm_cast: the engine owns the named people, so who died has one true answer."""
+
+    def roster(self, seed=7, n=5):
+        import gm_cast as C
+        rng = B.RNG(seed)
+        s = {"cast": C.roster(rng, n, "military", roles=["sergeant", "gunner", "scout"]), "men": 16, "_turn": 4}
+        return C, rng, s
+
+    def test_roster_is_deterministic_distinct_and_json_safe(self):
+        C, _, s = self.roster()
+        _, _, s2 = self.roster()
+        self.assertEqual(s["cast"], s2["cast"])
+        self.assertEqual(len({c["name"].split()[-1] for c in s["cast"]}), 5, "surnames are distinct: events name people by surname")
+        self.assertEqual([c["role"] for c in s["cast"]], ["sergeant", "gunner", "scout", "sergeant", "gunner"])
+        self.assertEqual(K.scan_state(s), [])
+        json.dumps(s)
+        self.assertTrue(all(c["alive"] and c["fell"] is None and c["tell"] for c in s["cast"]))
+
+    def test_fall_marks_the_dead_and_names_them(self):
+        C, rng, s = self.roster()
+        dead = C.fall(s, rng, 2)  # unit scale: two losses are two people
+        self.assertEqual(len(dead), 2)
+        self.assertEqual(len(C.alive(s)), 3)
+        self.assertTrue(all(not c["alive"] and c["fell"] == 4 for c in dead))
+        text = C.fallen_text(dead)
+        self.assertTrue(text.endswith(" fell.") and " and " in text, text)
+        self.assertEqual(K.text_problems(text), [])
+        self.assertEqual(C.fallen_text([]), "")
+        self.assertEqual(C.fall(s, rng, 0), [])
+
+    def test_fall_with_a_pool_never_kills_more_than_lost_or_alive(self):
+        C, rng, s = self.roster()
+        for _ in range(40):
+            before = len(C.alive(s))
+            dead = C.fall(s, rng, 3, pool=16)
+            self.assertLessEqual(len(dead), min(3, before))
+        C2, rng2, s2 = self.roster(seed=9)
+        self.assertEqual(len(C2.fall(s2, rng2, 50, pool=50)), 5, "losing everyone loses every named person")
+
+    def test_every_family_has_a_pool_and_unknown_falls_back(self):
+        import gm_cast as C
+        for fam in ("military", "historical", "fantasy", "scifi", "nature", "workplace", "abstract", "other", "no-such-family"):
+            cast = C.roster(B.RNG(1), 3, fam)
+            self.assertEqual(len(cast), 3, fam)
+            for c in cast:
+                self.assertEqual(K.text_problems(C.fallen_text([c])), [], c)
+
+    def test_cast_names_are_known_words_for_the_vocabulary_lint(self):
+        self.assertEqual(K.vocabulary_hints(Lantern(), {"Reyle": 2}, "Sergeant Tomas Reyle"), [])
+        self.assertTrue(K.vocabulary_hints(Lantern(), {"Reyle": 2}, "nothing here"))
+
+
+class DiceTests(unittest.TestCase):
+    """A game whose rolls a sensible player never meets gets a DICE warning; the roll log marks each check."""
+
+    def test_check_marks_the_roll_log(self):
+        r = B.RNG(3)
+        r.check(4, 6, "haul")
+        self.assertEqual(len(r.log), 1)
+        self.assertIn(" need 4+ ", r.log[0])
+
+    def test_selftest_counts_dice_per_game(self):
+        results, stats, _ = B._run_games(Lantern(), range(1, 6), "random", 4)
+        self.assertGreater(stats["checks"], 0)
+        summary, _ = B._summarize(Lantern(), 5, "random", results, stats, {})
+        self.assertGreater(summary["dice_per_game"], 0)
+
+    def test_warning_only_when_random_rolls_and_sensible_play_does_not(self):
+        self.assertIsNone(B.dice_warning({"dice_per_game": 0.2}, {"dice_per_game": 0.0}), "a game without rolls is fine")
+        self.assertIsNone(B.dice_warning({"dice_per_game": 3.0}, {"dice_per_game": 2.0}))
+        self.assertIsNone(B.dice_warning({"dice_per_game": 3.0}, {"dice_per_game": 0.1}, {"dice_per_game": 1.5}), "look-ahead takes the rolls: the heuristic is timid")
+        w = B.dice_warning({"dice_per_game": 3.0}, {"dice_per_game": 0.1}, {"dice_per_game": 0.2})
+        self.assertTrue(w and w.startswith("DICE:"), w)
 
 
 class ParamTests(unittest.TestCase):

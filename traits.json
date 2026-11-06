@@ -26,7 +26,8 @@
     "TONE": 12,
     "CURRENCY": 12,
     "TRACKED": 3,
-    "FINISH": 4
+    "FINISH": 4,
+    "STORY": 4
   },
   "traits": {
     "primary_bucket": {
@@ -253,6 +254,20 @@
         "mid",
         "long"
       ]
+    },
+    "story_level": {
+      "roll": "STORY",
+      "about": "How much of a story the game carries: none beyond the premise, a named cast whose fates the engine tracks, or a cast plus a want that pays off.",
+      "values": [
+        "lean",
+        "cast",
+        "saga"
+      ],
+      "meaning": {
+        "lean": "numbers and functional NPCs; STORY 1 or 2",
+        "cast": "four to six named people in s['cast'], losses name who fell; STORY 3",
+        "saga": "cast plus one want that surfaces by the midpoint and an epilogue; STORY 4"
+      }
     }
   }
 }

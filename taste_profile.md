@@ -82,6 +82,10 @@ Each of these can be dropped into a 10-30 turn chat game.
 - Freedom with gravity. Multiple valid paths (trader, fighter, builder) but scarcity and depletion keep the player moving.
 - Fair but unforgiving. Dying or losing a round is cheap to recover from in turns but should cost something real (money, cargo, position).
 
+## Story (added 2026-11-06, from play)
+
+Some games, not all, should carry a story at the level of people. In Low Wells the player asked "what were the names of those who died" after an ambush that cost 3 men, and later asked for more open-ended games with "characters". The want is not plot or lore: it is that losses land on someone with a name, that the company is people the player can ask about, and that a rival has a face. The STORY roll in the skill decides which games get this (about half); `engine/gm_cast.py` gives the engine a roster so the names are consistent and the dead stay dead. Everything under Avoid still holds: a cast is half a line of character per turn, never a prologue.
+
 ## Avoid
 
 - No heavy narrative. No long lore dumps, no prologue chapters, no chosen-one plot. A one-paragraph premise is enough.
