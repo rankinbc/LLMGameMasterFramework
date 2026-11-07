@@ -22,3 +22,4 @@
 2026-10-14 | Trophy Route | FORM=19 SET=55 LOOP=32 TWIST=38 | actions=advance,post_bus,post_insp,pull,hold,express,ride | win | 14
 2026-10-20 | Closure Order | FORM=6 SET=2 LOOP=29 TWIST=1 CURRENCY=5 | actions=hop,skip,hold,seal | loss | 12
 2026-11-06 | Low Wells | FORM=3 SET=17 LOOP=2 TWIST=15 CURRENCY=7 | actions=march,sail,question,lie,hire | win | 11
+2026-11-06 | Brass Ring | FORM=12 SET=19 LOOP=19 TWIST=45 CURRENCY=4 | actions=move,lie_low,bait,raid | win | 16

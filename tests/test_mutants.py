@@ -168,7 +168,7 @@ MUTANTS = {
         ["TEXT:"],
     ),
     "tracked_too_many": (
-        [('TRACKED = ["oil", "column", "lit"]', 'TRACKED = ["oil", "column", "lit", "fails"]')],
+        [('TRACKED = ["oil", "column", "lit"]', 'TRACKED = ["oil", "column", "lit", "fails", "signal"]')],
         ["TRACKED:"],
     ),
     "rule_line_too_long": (
@@ -191,6 +191,29 @@ MUTANTS = {
 }
 
 
+EXAMPLE_BELT = os.path.join(ENGINE_DIR, "example_belt", "engine.py")
+
+# v4 bug classes, injected into the belt engine: a growth number that cannot double, a ladder tier nobody reaches,
+# a path that never pays. `check --quick` must flag each.
+BELT_MUTANTS = {
+    "growth_capped": (
+        [('if s["credits"] >= C["SHIP_COST"] and self.fleet(s) < C["FLEET_MAX"]:', 'if s["credits"] >= C["SHIP_COST"] and self.fleet(s) < 3:')],
+        ["GROWTH:", "GATE-HIDDEN:"],
+    ),
+    "ladder_top_unreachable": (
+        [('if s["credits"] >= C["REFINERY_COST"] and s["tier"] >= 2 and not s["refinery"]:', 'if s["credits"] >= C["REFINERY_COST"] and s["tier"] >= 3 and not s["refinery"]:')],
+        ["LADDER:", "ACTION:", "GATE-HIDDEN:"],
+    ),
+    "dead_raid_path": (
+        [
+            ('ok, txt = rng.check(C["RAID_NEED_ESCORT"] if esc else C["RAID_NEED"], 6, "raid")  # lit-ok: a d6', 'ok, txt = rng.check(C["RAID_NEED_ESCORT"] if esc else C["RAID_NEED"], 6, "raid")  # lit-ok: a d6\n            ok = False'),
+            ('ok, txt = rng.check(C["JUMP_NEED_BIG"] if big else C["JUMP_NEED"], 6, "jump")  # lit-ok: a d6', 'ok, txt = rng.check(C["JUMP_NEED_BIG"] if big else C["JUMP_NEED"], 6, "jump")  # lit-ok: a d6\n            ok = False'),
+        ],
+        ["PATHS:", "GAMBIT:", "TAG:"],
+    ),
+}
+
+
 def run_check(path, cwd):
     r = subprocess.run([sys.executable, path, "check", "--quick"], capture_output=True, text=True, cwd=cwd, timeout=900, check=False)
     try:
@@ -199,8 +222,8 @@ def run_check(path, cwd):
         return {"flags": [f"UNPARSEABLE OUTPUT: {r.stdout[-200:]} {r.stderr[-300:]}"], "verdict": "ERROR"}
 
 
-def build_mutant(name, replacements, outdir):
-    with open(EXAMPLE, encoding="utf-8") as f:
+def build_mutant(name, replacements, outdir, example=EXAMPLE):
+    with open(example, encoding="utf-8") as f:
         src = f.read()
     for old, new in replacements:
         if old not in src:
@@ -249,6 +272,41 @@ class MutantSuite(unittest.TestCase):
             if not hit:
                 missed.append(f"{name}: expected one of {expected}, got flags {flags[:3]} warnings {[w[:60] for w in warns[:3]]}")
         self.assertEqual(missed, [], "bug classes the harness no longer catches:\n" + "\n".join(missed))
+
+
+class BeltMutantSuite(unittest.TestCase):
+    """The v4 reference engine must be clean, and each v4 bug class injected into it must be flagged."""
+
+    results = {}
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.mkdtemp(prefix="gm_belt_mutants_")
+        jobs = {}
+        for name, (reps, _exp) in BELT_MUTANTS.items():
+            workdir = os.path.join(cls.tmp, name)
+            os.makedirs(workdir)
+            jobs[name] = (build_mutant(name, reps, workdir, EXAMPLE_BELT), workdir)
+        control_dir = os.path.join(cls.tmp, "control")
+        os.makedirs(control_dir)
+        jobs["__control__"] = (build_mutant("control", [], control_dir, EXAMPLE_BELT), control_dir)
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            futs = {name: pool.submit(run_check, p, wd) for name, (p, wd) in jobs.items()}
+            for name, fut in futs.items():
+                cls.results[name] = fut.result()
+
+    def test_belt_control_is_clean(self):
+        res = self.results["__control__"]
+        self.assertEqual(res.get("flags"), [], f"the v4 reference engine must be clean: {res.get('flags')}")
+
+    def test_every_belt_mutant_is_caught(self):
+        missed = []
+        for name, (_reps, expected) in BELT_MUTANTS.items():
+            res = self.results[name]
+            flags = res.get("flags", [])
+            if not any(exp in f for exp in expected for f in flags):
+                missed.append(f"{name}: expected one of {expected}, got flags {flags[:4]}")
+        self.assertEqual(missed, [], "v4 bug classes the harness no longer catches:\n" + "\n".join(missed))
 
 
 if __name__ == "__main__":

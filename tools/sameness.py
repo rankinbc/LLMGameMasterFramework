@@ -8,7 +8,7 @@ Usage (run from anywhere):
     python sameness.py add '<json>' [--file F]          validate, append, then report on the newest game
     python sameness.py last [--file F]                  newest game against the games before it
     python sameness.py brief [--file F]                 what the next game must differ on
-    python sameness.py novelty FORM=5 SET=12 CURRENCY=7  the roll-layer novelty check; says which axes to reroll
+    python sameness.py novelty ENGINE=3 SET=12 GROWTH=2  the roll-layer novelty check; says which axes to reroll (FORM/CURRENCY for old games)
     python sameness.py verbs haul,light,shield          the mechanics-layer check against the last 10 games
     python sameness.py backlog [--file F]               write variation_backlog.md from the current flags
     python sameness.py phrases FILE [FILE ...]          4-word phrases that recur across game transcripts
@@ -223,20 +223,26 @@ def novelty(games, rolls):
     """The roll-layer novelty rules of the skill, run mechanically against the fingerprints."""
     out = []
     recent15, recent5, recent3 = games[-15:], games[-5:], games[-3:]
-    form, setting, cur = rolls.get("FORM"), rolls.get("SET"), rolls.get("CURRENCY")
+    # v4 games have an ENGINE spine and a GROWTH number; older games had FORM and CURRENCY. Whichever is given is checked.
+    spine = "ENGINE" if "ENGINE" in rolls else "FORM"
+    second = "GROWTH" if "GROWTH" in rolls else "CURRENCY"
+    form, setting, cur = rolls.get(spine), rolls.get("SET"), rolls.get(second)
     for g in recent15:
         gr = g.get("rolls", {})
-        if form is not None and setting is not None and gr.get("FORM") == form and gr.get("SET") == setting:
-            out.append(f"REROLL SET: FORM {form} + SET {setting} matches '{g.get('title')}'")
+        if form is not None and setting is not None and gr.get(spine) == form and gr.get("SET") == setting:
+            out.append(f"REROLL SET: {spine} {form} + SET {setting} matches '{g.get('title')}'")
             break
     if form is not None:
-        n = sum(1 for g in recent5 if g.get("rolls", {}).get("FORM") == form)
+        n = sum(1 for g in recent5 if g.get("rolls", {}).get(spine) == form)
         if n >= 3:
-            out.append(f"REROLL FORM: FORM {form} appears in {n} of the last 5 games")
+            out.append(f"REROLL {spine}: {spine} {form} appears in {n} of the last 5 games")
     if cur is not None:
-        n = sum(1 for g in recent3 if g.get("rolls", {}).get("CURRENCY") == cur)
+        n = sum(1 for g in recent3 if g.get("rolls", {}).get(second) == cur)
         if n >= 2:
-            out.append(f"REROLL CURRENCY: CURRENCY {cur} appears in {n} of the last 3 games")
+            out.append(f"REROLL {second}: {second} {cur} appears in {n} of the last 3 games")
+    skel = [g.get("traits", {}).get("skeleton") for g in recent3]
+    if len(skel) == 3 and skel[0] and skel.count(skel[0]) == 3:
+        out.append(f"SKELETON: the last 3 games were all {skel[0]}; build a different shape this time whatever the rolls say")
     return out or ["OK: no roll needs rerolling"]
 
 

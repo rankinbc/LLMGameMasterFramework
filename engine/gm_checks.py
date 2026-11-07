@@ -14,8 +14,10 @@ What is caught here, with no per-game code (a game may add BOUNDS, REACH, GATES,
     a check_end that ends the game before the last action is played
     a crash at the observed minimum or maximum of any numeric state key (fuzz)
     nondeterminism: a different trace for the same seed, in process or across hash seeds
-    more than 3 tracked numbers, a rule line that is too long
+    more than 4 tracked numbers, a rule line that is too long
     a feeling priced like goods in the sheet, a label or an event ("buy 2 Morale"): SENSE
+    a GROWTH number that does not double by two thirds of the game, a LADDER tier most games never reach,
+    a PATHS family that carries almost no wins (growth_problems, ladder_problems, paths_problems)
     warnings: a menu number that needs two answers (MOVE), a status line with more than 5 numbers (STATUS)
 
 Rule tests (the executable spec) are written per game as Game.rule_tests(); see class T.
@@ -836,6 +838,7 @@ def run_rule_tests(g, B):
 
 
 GAMBIT_OFFER_MIN = 0.25  # a gambit offered in fewer states than this cannot absorb the player's off-menu ideas
+TRACKED_MAX = 4          # v4: the status line's four fields; the board holds the rest
 
 
 def gambit_problems(g, stat, s0=None):
@@ -880,6 +883,171 @@ def gambit_problems(g, stat, s0=None):
     return flags, warnings
 
 
+# ---------------------------------------------------------------- growth, ladder, paths, economy (v4)
+
+GROWTH_FACTOR = 2.0      # the GROWTH number must at least double in sensible play
+GROWTH_BY = 0.66         # by this share of the turn budget
+LADDER_T2_MIN = 0.70     # share of sensible games that must reach tier 2
+LADDER_T3_MIN = 0.40     # and tier 3
+PATH_WIN_SHARE_MIN = 0.30  # every PATHS family must carry at least this share of wins
+PATH_MIN_MOVES = 3       # a win "uses" a family when at least this many of its moves came from the family
+PATH_MIN_WINS = 10       # fewer wins than this and the paths check is skipped
+
+
+def growth_spec(g):
+    """GROWTH normalized: None, or {"key", "factor", "by"}. GROWTH may be a state key (or DERIVED name) or a dict."""
+    spec = getattr(g, "GROWTH", None)
+    if not spec:
+        return None
+    if isinstance(spec, str):
+        return {"key": spec, "factor": GROWTH_FACTOR, "by": GROWTH_BY}
+    return {"key": spec["key"], "factor": spec.get("factor", GROWTH_FACTOR), "by": spec.get("by", GROWTH_BY)}
+
+
+def growth_value(g, s):
+    spec = growth_spec(g)
+    if not spec:
+        return None
+    return numeric_view(g, s).get(spec["key"])
+
+
+def growth_mark(g):
+    spec = growth_spec(g)
+    return max(1, int(g.turns * spec["by"])) if spec else None
+
+
+def _median(xs):
+    xs = sorted(x for x in xs if x is not None)
+    if not xs:
+        return None
+    m = len(xs) // 2
+    return xs[m] if len(xs) % 2 else (xs[m - 1] + xs[m]) / 2
+
+
+def growth_problems(g, rows):
+    """rows: per sensible game {"start", "mid", "end"} values of the GROWTH number. Flags when it does not
+    grow by the factor by the mark; warns when it stops growing in the last third."""
+    spec = growth_spec(g)
+    flags, warnings = [], []
+    if not spec:
+        warnings.append("GROWTH not declared; a v4 game names the number that must get bigger (a fleet, a population, an income), so a game where nothing grows is caught")
+        return flags, warnings
+    rows = [r for r in rows if r and r.get("start") is not None and r.get("mid") is not None]
+    if len(rows) < 10:
+        return flags, warnings
+    start, mid, end = _median(r["start"] for r in rows), _median(r["mid"] for r in rows), _median(r.get("end") for r in rows)
+    need = spec["factor"] * max(1, start)
+    if mid < need:
+        flags.append(
+            f"GROWTH: {spec['key']} does not grow: sensible play has it at {mid:g} by turn {growth_mark(g)} from a start of {start:g} "
+            f"(needs {need:g}, {spec['factor']:g} times the start). Nothing compounds; give the player an income that rises or a stock that builds"
+        )
+    elif end is not None and end <= mid:
+        warnings.append(f"GROWTH: {spec['key']} stops growing in the last third (median {mid:g} at turn {growth_mark(g)}, {end:g} at the end); the finish is a plateau")
+    return flags, warnings
+
+
+def ladder_problems(g, rows):
+    """rows: per sensible game {"tier_max", "tier2_turn"}. LADDER = {"key": "tier", "tiers": [...], "unlocks": {2: [ids], 3: [ids]}}."""
+    spec = getattr(g, "LADDER", None)
+    flags, warnings = [], []
+    if not spec:
+        warnings.append("LADDER not declared; a v4 game names three tiers the player climbs (key, tiers, unlocks), each adding an action, so a game with nothing to build toward is caught")
+        return flags, warnings
+    tiers = list(spec.get("tiers") or [])
+    if len(tiers) < 3:
+        flags.append(f"LADDER: needs at least three tiers, got {tiers!r}")
+        return flags, warnings
+    actions = set(getattr(g, "ACTIONS", []) or [])
+    for tier, ids in (spec.get("unlocks") or {}).items():
+        for a in ids:
+            if actions and a not in actions:
+                flags.append(f"LADDER: tier {tier} unlocks {a!r}, which is not in ACTIONS")
+    rows = [r for r in rows if r and r.get("tier_max") is not None]
+    if len(rows) < 10:
+        return flags, warnings
+    n = len(rows)
+    t2 = sum(1 for r in rows if r["tier_max"] >= 2) / n
+    t3 = sum(1 for r in rows if r["tier_max"] >= 3) / n
+    if t2 < LADDER_T2_MIN:
+        flags.append(f"LADDER: only {t2:.0%} of sensible games reach tier 2 ({tiers[1]}); the ladder is out of reach (need {LADDER_T2_MIN:.0%})")
+    if t3 < LADDER_T3_MIN:
+        flags.append(f"LADDER: only {t3:.0%} of sensible games reach tier 3 ({tiers[2]}); the top of the ladder is decoration (need {LADDER_T3_MIN:.0%})")
+    turns2 = [r.get("tier2_turn") for r in rows if r.get("tier2_turn")]
+    med2 = _median(turns2)
+    if med2 is not None and med2 > g.turns / 2:
+        warnings.append(f"LADDER: tier 2 ({tiers[1]}) lands at turn {med2:g} in the median game, past the midpoint; the first half has nothing to build")
+    return flags, warnings
+
+
+def paths_problems(g, rows):
+    """rows: per game {"result", "picks": {action_id: count}} from sensible and look-ahead play.
+    PATHS = {"haul": ["mine", "sell"], "raid": ["raid"]}: every family must carry a share of the wins."""
+    spec = getattr(g, "PATHS", None)
+    flags, warnings = [], []
+    if not spec:
+        warnings.append("PATHS not declared; a v4 game names two action families that can each carry a win (trade or raid, build or expand), so a one-path game is caught")
+        return flags, warnings
+    if not isinstance(spec, dict) or len(spec) < 2:
+        flags.append(f"PATHS: needs at least two families of action ids, got {spec!r}")
+        return flags, warnings
+    actions = set(getattr(g, "ACTIONS", []) or [])
+    for fam, ids in spec.items():
+        for a in ids:
+            if actions and a not in actions:
+                flags.append(f"PATHS: family {fam!r} names {a!r}, which is not in ACTIONS")
+    wins = [r for r in rows if r and r.get("result") == "win" and r.get("picks")]
+    if len(wins) < PATH_MIN_WINS:
+        return flags, warnings
+    for fam, ids in spec.items():
+        used = sum(1 for r in wins if sum(r["picks"].get(a, 0) for a in ids) >= PATH_MIN_MOVES)
+        share = used / len(wins)
+        if share < PATH_WIN_SHARE_MIN:
+            flags.append(
+                f"PATHS: the {fam} path ({', '.join(ids)}) carries {share:.0%} of wins (fewer than {PATH_MIN_MOVES} of its moves in the rest); "
+                f"one path is not a game with paths (need {PATH_WIN_SHARE_MIN:.0%})"
+            )
+    return flags, warnings
+
+
+def economy_problems(g, s0):
+    """ECONOMY = {"income": [state keys], "stock": [state keys], "sinks": [action ids]}: the parts must exist."""
+    spec = getattr(g, "ECONOMY", None)
+    flags, warnings = [], []
+    if not spec:
+        warnings.append("ECONOMY not declared; a v4 game names its income (state keys), stock (state keys) and sinks (action ids), so a budget puzzle without an economy is caught")
+        return flags, warnings
+    view = numeric_view(g, s0) if s0 is not None else {}
+    for part in ("income", "stock"):
+        for key in spec.get(part) or []:
+            if s0 is not None and key not in view:
+                flags.append(f"ECONOMY: {part} names {key!r}, which is not a numeric state value (or a DERIVED name)")
+        if not spec.get(part):
+            flags.append(f"ECONOMY: no {part} named")
+    sinks = spec.get("sinks") or []
+    actions = set(getattr(g, "ACTIONS", []) or [])
+    if not sinks:
+        flags.append("ECONOMY: no sinks named; the stock must have somewhere to go")
+    for a in sinks:
+        if actions and a not in actions:
+            flags.append(f"ECONOMY: sink {a!r} is not in ACTIONS")
+    return flags, warnings
+
+
+def declaration_problems(g, s0):
+    """Static checks of the v4 declarations against the opening state."""
+    flags = []
+    spec = growth_spec(g)
+    if spec and s0 is not None and spec["key"] not in numeric_view(g, s0):
+        flags.append(f"GROWTH: {spec['key']!r} is not a numeric state value (declare it in DERIVED if it is computed)")
+    lad = getattr(g, "LADDER", None)
+    if lad and s0 is not None:
+        key = lad.get("key")
+        if key not in numeric_view(g, s0):
+            flags.append(f"LADDER: key {key!r} is not a numeric state value")
+    return flags
+
+
 def run_universal(g, B, engine_path=None):
     flags, warnings = [], []
     try:
@@ -890,6 +1058,10 @@ def run_universal(g, B, engine_path=None):
     gf, gw = gambit_problems(g, obs["stat"], s_first)
     flags += gf
     warnings += gw
+    flags += declaration_problems(g, s_first)
+    ef, ew = economy_problems(g, s_first)
+    flags += ef
+    warnings += ew
     names = {
         "json": "JSON", "state": "STATE", "bounds": "BOUNDS", "leak": "LEAK", "text": "TEXT",
         "status": "STATUS", "hidden": "GATE-HIDDEN", "ungated": "GATE-OFFERED", "crash": "CRASH", "after_end": "TEXT",
@@ -925,8 +1097,8 @@ def run_universal(g, B, engine_path=None):
     flags += [f"CHECK_END: {p}" for p in check_end_problems(g, B, obs["snapshots"])]
     # TRACKED: the numbers and boards the player must manage; at most 3
     tracked = list(getattr(g, "TRACKED", []))
-    if len(tracked) > 3:
-        flags.append(f"TRACKED: {len(tracked)} tracked numbers ({', '.join(tracked)}); the limit is 3. A board with rules counts as one")
+    if len(tracked) > TRACKED_MAX:
+        flags.append(f"TRACKED: {len(tracked)} tracked numbers ({', '.join(tracked)}); the limit is {TRACKED_MAX}. A board with rules counts as one")
     elif not tracked:
         warnings.append("TRACKED not declared; list every number or board the player must manage (3 at most), including ones kept off the status line")
     else:

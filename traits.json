@@ -27,7 +27,11 @@
     "CURRENCY": 12,
     "TRACKED": 3,
     "FINISH": 4,
-    "STORY": 4
+    "STORY": 4,
+    "ENGINE": 6,
+    "GROWTH": 6,
+    "PRESSURE": 5,
+    "PATHS": 6
   },
   "traits": {
     "primary_bucket": {
@@ -268,6 +272,42 @@
         "cast": "four to six named people in s['cast'], losses name who fell; STORY 3",
         "saga": "cast plus one want that surfaces by the midpoint and an epilogue; STORY 4"
       }
+    },
+    "skeleton": {
+      "roll": null,
+      "about": "The structural shape of the whole game, judged after play. Three in a row is the sameness the player noticed on 2026-11-06.",
+      "values": [
+        "budget-recover",
+        "grow-and-defend",
+        "race",
+        "build-order",
+        "trade-loop",
+        "hunt",
+        "other"
+      ],
+      "meaning": {
+        "budget-recover": "one number is spent by acting and recovered by resting; the game is pacing that budget",
+        "grow-and-defend": "something gets bigger each turn and a pressure scales with it",
+        "race": "two tallies converge on a target",
+        "build-order": "an order of purchases unlocks the next purchases",
+        "trade-loop": "buy here, carry, sell there, repeat with a bigger hold",
+        "hunt": "find and corner one thing by reading its tells"
+      },
+      "hint": "Unrolled on purpose: the ENGINE roll should drive it. A streak of 3 means the generator bends every ENGINE into the same shape."
+    },
+    "growth_kind": {
+      "roll": "GROWTH",
+      "about": "What got bigger over the game (the GROWTH declaration).",
+      "values": [
+        "headcount",
+        "fleet",
+        "land",
+        "income",
+        "tier",
+        "map",
+        "none"
+      ],
+      "hint": "none is a pre-v4 game or a v4 game that failed to grow."
     }
   }
 }

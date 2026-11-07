@@ -2,6 +2,8 @@
 
 Home for the `/play` skill (`~/.claude/skills/play/SKILL.md`). Each `/play` invents a new lightweight text game from random rolls, writes a Python engine for it, selftests it, and runs it in chat. The engine owns numbers, dice, clock and rival. The LLM owns words.
 
+v4 (2026-11-07): every game must grow. An engine declares `GROWTH`, `ECONOMY`, `LADDER` and `PATHS`, runs 24 to 40 turns, and `check` fails a game whose growth number does not double, whose ladder is out of reach, or whose second path carries no wins. Why: `plans/2026-11-06_growth_redesign.md`.
+
 ## Layout
 
 | Path | Purpose |
@@ -11,7 +13,9 @@ Home for the `/play` skill (`~/.claude/skills/play/SKILL.md`). Each `/play` inve
 | `engine/gm_checks.py` | Universal bug checks (JSON round trip, text and plural lint, gates, reach, check_end at the budget, fuzz, determinism) and the rule-test harness `T`. |
 | `engine/gm_cast.py` | A named cast the engine owns (`roster`, `fall`, `fallen_text`) for games whose STORY roll is 3 or 4, so "who died" has one true answer. |
 | `engine/gm_analysis.py`, `engine/gm_mutate.py` | `profile`, `autopsy`, `ablate`, `replay`; and the mutation pass that measures how strong a game's rule tests are. |
-| `engine/example_lantern_chain/` | Reference engine. Copy its shape for new games, never its content. |
+| `engine/example_belt/` | The v4 reference engine (an economy that grows, a ladder, two paths, a visible rival). Copy its shape for new games, never its content. |
+| `engine/example_lantern_chain/` | The old budget-puzzle reference. The regression suite still uses it; new games do not copy it. |
+| `plans/` | Design plans, newest first. |
 | `library/<name>/` | Saved games: `rules.md` plus `engine.py`. `/play <name>` reruns one with a fresh seed. |
 | `sessions/<date>_<slug>/` | A live game: `engine.py`, `state.json`, `rolls.log`, `notes.md`. `/play resume` picks up the newest. |
 | `played_log.md` | One line per finished game with rolls and action ids. Used for the novelty check. |
@@ -33,6 +37,7 @@ python engine.py new [seed]              start; prints turn 1 JSON
 python engine.py step <id> [json]        apply, advance, save, print turn JSON (same id, different args: pass the args)
 python engine.py step "#3"               pick the 3rd entry of the options list
 python engine.py status                  current state, no advance
+python engine.py board                   the full board: every number the player may see, one line each
 python engine.py rules                   the rulesheet, built from CONSTANTS
 python engine.py check                   random, heuristic and look-ahead play, sheet audit, coverage; counts tuning rounds (cap 4)
 python engine.py check --free            same, without counting a round
@@ -49,7 +54,7 @@ python engine.py selftest 300 <policy>   one policy: random | heuristic | lookah
 python engine.py log                     every die rolled, in order
 ```
 
-Bands: random wins under 35 percent, heuristic 25 to 45 percent, look-ahead 60 to 90 percent (a warning). An engine declares CONSTANTS, RULES, ACTIONS and TAGS so `check` can catch sheet drift, hidden actions and unreachable twists, and GAMBITS plus RIVAL_KEYS so `check` can prove the player has risky moves off the loop and that one of them really touches the rival.
+Bands: random wins under 35 percent, heuristic 25 to 55 percent, look-ahead 60 to 90 percent (a warning). An engine declares CONSTANTS, RULES, ACTIONS and TAGS so `check` can catch sheet drift, hidden actions and unreachable twists; GAMBITS plus RIVAL_KEYS so `check` can prove the player has risky moves off the loop and that one of them really touches the rival; and GROWTH, ECONOMY, LADDER and PATHS so `check` can prove something grows, the ladder is climbed and both paths win.
 
 ## Tests
 
@@ -63,10 +68,12 @@ Change `gm_base.py` or `gm_checks.py` only with the suite green and ruff clean. 
 
 ## Rules of the house
 
-- Rulesheets stay at 8 lines or fewer, 3 tracked numbers max, one decision per turn. Caps live in the skill; edit them there.
+- Rulesheets stay at 8 lines or fewer, a status line of 4 fields with up to 5 numbers, a board of about 8 plain numbers on request, one decision per turn, 24 to 40 turns. Caps live in the skill; edit them there.
+- Something grows (GROWTH doubles by two thirds), the economy has income, stock and sinks (ECONOMY), there is a ladder of three tiers (LADDER) and two paths to the win (PATHS). The rival is visible and economic; a hidden rule is a twist. Origin: Brass Ring (2026-11-06), the third budget-versus-hidden-rival puzzle in a row, which the player called boring.
+- Review is a quarter of the effort at most: one cold read, one QA round, a second only on NONSENSE or an S1 or S2.
 - An engine with flags from `check` is not presented. Tune first, at most 4 rounds. Warnings are read, not obeyed blindly.
 - A turn is the player's action (`apply`), then dusk (`advance`), then the counter goes up. `_turn` is the turn being played in `apply`, `advance` and `check_end`; the budget is scored in `final_check`. A fatal event calls `self.finish(...)`.
-- A new game gets an independent review (Step 7) before it is presented, repeated with a fresh reviewer until a round finds no S1 or S2 and at most two S3. Measured on 8 attacked games: no wrong arithmetic; about four wording or sheet slips a game after two reviews. Every bug it finds in the harness becomes a mutant or a unit test first.
+- A new game gets one independent review (Step 7) before it is presented; a second round only when the first found an S1 or an S2. Measured on 8 attacked games: no wrong arithmetic; about four wording or sheet slips a game after two reviews. Every bug it finds in the harness becomes a mutant or a unit test first.
 - A turn whose JSON carries a non-empty `integrity` list is an engine bug. Stop, fix, recheck; never narrate over it.
 - A game must make sense to a stranger (skill limits 9 and 10). Feelings and standings (morale, trust, nerve, suspicion) are never bought, sold or priced; a rolled number is not a currency just because it was rolled; action labels are plain verbs, not code words. `check` flags the worst case as SENSE, warns on MOVE (a menu number needing two answers) and STATUS (more than 5 numbers), and the cold read (Step 7, 4a) catches the rest. Origin: Dim Ledger (2026-10-16) sold crew morale for Light at four "consoles" and passed `check` and two QA rounds, because both test the engine, not whether the game makes sense.
 - The player can push back (skill limit 11). Every new game has two or three gambits, risky moves off the loop that the setting invites, one of them against the rival. `check` flags a rival gambit that never changes a RIVAL_KEYS value and warns on no gambits, a rarely offered gambit, or one no policy plays; a GAMBIT warning is never accepted for a new game. Origin: Low Wells (2026-11-06), four player ideas in a row met "the game cannot".

@@ -27,6 +27,7 @@ CLI (run from the session folder):
     python engine.py fingerprint           mechanical traits of this game for the sameness detector
     python engine.py selftest [n] [policy] one policy only: random | heuristic | lookahead
     python engine.py log                   roll log since game start
+    python engine.py board                 the full board (every number the player may see), one line each
 
 Contract (everything below `options` is checked by `check`):
     CONSTANTS  dict of every number the rulesheet states. The engine reads self.C["KEY"], never a literal.
@@ -35,8 +36,7 @@ Contract (everything below `options` is checked by `check`):
     ACTIONS    every action id the game can offer. Never offered, or offered but not listed, is a bug.
     TAGS       every twist, event, unlock and lever the game can fire. Call self.hit("tag") where it fires.
                A tag that never fires in any selftest game is a bug.
-    TRACKED    state keys of every number or board the player must manage, 3 at most, including ones kept off the
-               status line.
+    TRACKED    state keys of the numbers on the status line, 4 at most; the board (board(s)) holds the rest.
     options    returns EVERY legal action. Several actions may share an id if their "args" differ (a "light" action
                per dark lantern); give them a "group". An action that takes a number or a pick from the player
                carries "params": {"amount": {"min": 1, "max": 6}} or {"oil": {"choices": [3, 6]}}. The player
@@ -57,6 +57,18 @@ Contract (everything below `options` is checked by `check`):
                warning: the player can only play the loop, and every idea of theirs gets "the game cannot".
     RIVAL_KEYS ["ready", "riders"]: the state keys that describe the rival (position, readiness, strength, mood).
                Required when a gambit is marked "rival".
+    GROWTH     "fleet" (a state key or DERIVED name), or {"key": "fleet", "factor": 2, "by": 0.66}: the number that must
+               get bigger. `check` fails when sensible play has not multiplied it by the factor by that share of the
+               budget, and warns when it stops growing in the last third. A v4 game declares it.
+    ECONOMY    {"income": ["ore"], "stock": ["credits"], "sinks": ["build", "refit"]}: what comes in each turn, what is
+               held, and the actions that spend it (at least one sink should raise income). Keys must exist.
+    LADDER     {"key": "tier", "tiers": ["sloop", "brig", "frigate"], "unlocks": {2: ["refine"], 3: ["convoy"]}}: three
+               tiers the player climbs; each unlock id is in ACTIONS and gated on the tier. `check` fails when fewer
+               than 70% of sensible games reach tier 2 or fewer than 40% reach tier 3.
+    PATHS      {"haul": ["mine", "sell"], "raid": ["raid", "board"]}: two or more action families that can each carry a
+               win. `check` fails when a family is behind fewer than 30% of wins (3 or more of its moves in the game).
+    board(s)   (optional) the full board the player may ask for: up to about 8 plain numbers, one per line. The
+               status line stays at 4 fields; `python engine.py board` prints this.
     rule_tests the executable spec: one test per rule line, built on class gm_checks.T. `check` fails if a rule
                has no test or a test fails.
     resample_hidden(s, rng)  for games with hidden facts: redraw them consistent with what the player has seen, so
@@ -116,7 +128,7 @@ DECIDED_EDGE = 0.05  # decided when even the best option wins under this, or the
 # Difficulty bands. Random play must lose. A sensible policy should win a minority of games.
 # A look-ahead policy (search with rollouts) shows what a thoughtful player can reach.
 RANDOM_MAX = 0.35
-HEURISTIC_BAND = (0.25, 0.45)
+HEURISTIC_BAND = (0.25, 0.55)  # v4: longer games with two paths are won more often by a sensible player
 LOOKAHEAD_BAND = (0.6, 0.9)  # paired-rollout search plays near the ceiling; a human lands between the heuristic and this
 
 # Sheet limits.
@@ -210,7 +222,7 @@ def _posint(text, what, default=None):
 
 COMMANDS = [
     "new", "step", "status", "options", "rules", "check", "sweep", "trace", "texts", "profile", "ablate",
-    "autopsy", "replay", "fingerprint", "selftest", "log",
+    "autopsy", "replay", "fingerprint", "selftest", "log", "board",
 ]
 
 
@@ -231,13 +243,17 @@ class Game:
     RULES = ""      # rulesheet template with {KEY} placeholders, 8 lines max
     ACTIONS = []    # every action id the game can offer
     TAGS = []       # every twist, event, unlock, lever tag the game can fire
-    TRACKED = []    # state keys of every number or board the player must manage (3 at most)
+    TRACKED = []    # state keys of the numbers on the status line (4 at most); the board holds the rest
     BOUNDS = {}     # {"oil": (-20, 60)}: the range a numeric state value may take; outside it is a bug
     REACH = {}      # {"rival": 70} or {"oil": ("<=", 0)}: values the sheet promises can happen; never seen is a bug
     GATES = {}      # {"light": {"oil": "LIGHT_COST", "_if": fn(game, s)}}: when an action must be offered
     DERIVED = {}    # {"best": fn(game, s)}: computed numbers usable in BOUNDS and REACH
     GAMBITS = {}    # {"raid": {"rival": True}, "dig_in": {}}: risky moves off the main loop; one acts on the rival
     RIVAL_KEYS = [] # state keys that describe the rival; a "rival" gambit must change one of them when played
+    GROWTH = None   # "fleet" or {"key": "fleet", "factor": 2, "by": 0.66}: the number that must get bigger (v4)
+    ECONOMY = None  # {"income": [keys], "stock": [keys], "sinks": [action ids]} (v4)
+    LADDER = None   # {"key": "tier", "tiers": [three names], "unlocks": {2: [ids], 3: [ids]}} (v4)
+    PATHS = None    # {"haul": [ids], "raid": [ids]}: two or more families that can each carry a win (v4)
 
     # (required by `check` when RULES is declared) One test per rule line. Return [(rule_no, "name", fn)];
     # fn(t) builds a state with t.fresh(...), calls t.apply / t.advance / t.step and asserts with t.eq / t.ok.
@@ -297,6 +313,15 @@ class Game:
     # (required) Return None, or {"result": "win"|"loss", "reason": "..."}. Runs twice a turn; see the module docstring.
     def check_end(self, s):
         raise NotImplementedError
+
+    # (optional) The full board the player may ask for: one line per number, plain words. Default: every visible number.
+    def board(self, s):
+        lines = []
+        for key, v in K.numeric_view(self, s).items():
+            if key.startswith("_"):
+                continue
+            lines.append(f"{key.replace('_', ' ').capitalize()} {v:g}" if isinstance(v, float) else f"{key.replace('_', ' ').capitalize()} {v}")
+        return "\n".join(lines)
 
     # (optional) Things the player may see. Default: everything except s["hidden"].
     def visible(self, s):
@@ -654,8 +679,14 @@ def _play(g, seed, policy, k, prng, stats):
         k: v for k, v in (s.get("hidden") or {}).items()
         if isinstance(v, (int, str)) and not isinstance(v, bool) and len(str(v)) <= 12
     }
+    game = {"picks": Counter(), "growth": {"start": K.growth_value(g, s), "mid": None, "end": None}, "tier_max": None, "tier2_turn": None}
+    mark = K.growth_mark(g)
+    ladder = getattr(g, "LADDER", None) or {}
     while not s.get("_ended"):
         s = json.loads(json.dumps(s))  # real play saves and reloads every turn; so does selftest
+        if mark and game["growth"]["mid"] is None and s["_turn"] >= mark:
+            game["growth"]["mid"] = K.growth_value(g, s)
+        _note_tier(g, s, ladder, game)
         opts = g.options(s)
         if not opts:
             raise RuntimeError(f"no legal options at turn {s['_turn']}")
@@ -670,11 +701,30 @@ def _play(g, seed, policy, k, prng, stats):
         else:
             pick = _norm(g.heuristic(s, opts, rng), opts)
         stats["picked"][pick["id"]] += 1
+        game["picks"][pick["id"]] += 1
         s, _, log = _step(g, s, pick["id"], pick.get("args", {}))
         stats["checks"] += sum(1 for ln in log if " need " in ln)  # dice the player rolled against a target
         if s["_turn"] > g.turns + 2:
             raise RuntimeError("turn counter ran past budget; check_end never fired")
+    _note_tier(g, s, ladder, game)
+    game["growth"]["end"] = K.growth_value(g, s)
+    if mark and game["growth"]["mid"] is None:
+        game["growth"]["mid"] = game["growth"]["end"]  # the game ended before the mark
+    game["picks"] = dict(game["picks"])
+    stats["game"] = game
     return s
+
+
+def _note_tier(g, s, ladder, game):
+    if not ladder:
+        return
+    v = K.numeric_view(g, s).get(ladder.get("key"))
+    if v is None:
+        return
+    if game["tier_max"] is None or v > game["tier_max"]:
+        game["tier_max"] = v
+    if v >= 2 and game["tier2_turn"] is None:  # lit-ok: tier 2 is the second rung by definition
+        game["tier2_turn"] = s["_turn"]
 
 
 # ---------------------------------------------------------------- selftest (serial and parallel)
@@ -693,9 +743,11 @@ def _run_games(g, seeds, policy, k):
             continue
         for t in g._hits:
             tag_games[t] += 1
+        game = stats.pop("game", {})
         results.append({
             "seed": seed, "result": s["_ended"]["result"], "turn": s["_turn"], "reason": s["_ended"]["reason"],
-            "h0": stats.pop("h0", {}),
+            "h0": stats.pop("h0", {}), "picks": game.get("picks", {}), "growth": game.get("growth"),
+            "tier_max": game.get("tier_max"), "tier2_turn": game.get("tier2_turn"),
         })
     return results, stats, tag_games
 
@@ -760,7 +812,7 @@ def _summarize(g, n, policy, results, stats, tag_games, slack=0.0):
     summary["hidden_balance"] = imbalance
     summary["flags"] = flags
     summary["warnings"] = soft
-    raw = {"stats": stats, "tag_games": tag_games, "played": played}
+    raw = {"stats": stats, "tag_games": tag_games, "played": played, "results": results}
     return summary, raw
 
 
@@ -1026,6 +1078,20 @@ def _check(g, free=False, engine_path=None, quick=False):
                 warnings.append(f"TAG: {t} fires in {frac:.0%} of heuristic games (rare; fine for a twist, a problem for a core rule)")
     else:
         warnings.append("TAGS not declared, so unreachable twists and levers cannot be detected")
+
+    # v4: growth, ladder, paths, from the games already played
+    h_rows = [r for r in hr.get("results", []) if "result" in r]
+    gf, gw = K.growth_problems(g, [dict(r.get("growth") or {}) for r in h_rows])
+    flags += gf
+    warnings += gw
+    lf, lw = K.ladder_problems(g, h_rows)
+    flags += lf
+    warnings += lw
+    pf, pw = K.paths_problems(g, h_rows + [r for r in lr.get("results", []) if "result" in r])
+    flags += pf
+    warnings += pw
+    if getattr(g, "GROWTH", None) and not (24 <= g.turns <= 40):  # lit-ok: the v4 turn range
+        warnings.append(f"TURNS: a game that grows wants 24 to 40 turns to compound; this one has {g.turns}")
 
     for gid in getattr(g, "GAMBITS", {}) or {}:
         if g.ACTIONS and gid not in g.ACTIONS:
@@ -1307,6 +1373,10 @@ def _run(game_cls):
 
     if cmd == "status":
         print(json.dumps(_turn_json(g, s, []), indent=1))
+        return
+
+    if cmd == "board":
+        print(g.board(s))
         return
 
     if cmd == "autopsy":

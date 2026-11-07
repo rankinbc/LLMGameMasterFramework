@@ -218,6 +218,7 @@ class SamenessTests(unittest.TestCase):
             "win_shape": "threshold", "clock_shape": "upkeep", "opening_shape": "plan", "ending_shape": "flat",
             "midpoint_event": "none", "player_frame": "manager", "decision_unit": "pick-action",
             "setting_family": "workplace", "turn_band": "mid", "story_level": "lean",
+            "skeleton": ["trade-loop", "race", "hunt"][order % 3], "growth_kind": "none",
         }
         base.update(traits)
         return {"id": f"g{order}", "title": f"Game {order}", "order": order, "result": "win", "turns": 16,
@@ -280,6 +281,17 @@ class SamenessTests(unittest.TestCase):
             g["rolls"]["CURRENCY"] = 4
         out = sameness.novelty(same_form, {"FORM": 1, "SET": 50, "CURRENCY": 4})
         self.assertTrue(any(o.startswith("REROLL CURRENCY") for o in out), out)
+
+    def test_novelty_flags_three_skeletons_in_a_row_and_reads_v4_axes(self):
+        games = [self.game(i, skeleton="budget-recover") for i in range(1, 4)]
+        out = sameness.novelty(games, {"ENGINE": 9, "SET": 9, "GROWTH": 9})
+        self.assertTrue(any(o.startswith("SKELETON") for o in out), out)
+        for g in games:
+            g["rolls"] = {"ENGINE": 2, "SET": g["order"] + 10, "GROWTH": 4}
+            g["traits"]["skeleton"] = ["race", "hunt", "trade-loop"][g["order"] % 3]
+        out = sameness.novelty(games, {"ENGINE": 2, "SET": 1, "GROWTH": 4})
+        self.assertTrue(any("REROLL ENGINE" in o for o in out), out)
+        self.assertTrue(any("REROLL GROWTH" in o for o in out), out)
 
     def test_verbs_flags_a_repackage_and_passes_a_fresh_set(self):
         games = [dict(self.game(1), actions=["buy", "sell", "haul", "rest"]), dict(self.game(2), actions=["plant", "water"])]
@@ -737,14 +749,15 @@ class MiscHarnessTests(unittest.TestCase):
 
     def test_slack_at_the_cap_turns_a_small_band_miss_into_a_warning(self):
         g = Lantern()
-        results = [{"seed": i, "result": "win" if i <= 47 else "loss", "turn": 16, "reason": "x"} for i in range(1, 101)]
+        hi = int(B.HEURISTIC_BAND[1] * 100)
+        results = [{"seed": i, "result": "win" if i <= hi + 2 else "loss", "turn": 16, "reason": "x"} for i in range(1, 101)]
         stats = {"n_opts": [3], "offered": B.Counter(), "picked": B.Counter()}
         strict, _ = B._summarize(g, 100, "heuristic", results, stats, B.Counter(), slack=0.0)
         slack, _ = B._summarize(g, 100, "heuristic", results, stats, B.Counter(), slack=0.1)
         self.assertTrue(any("TOO EASY" in f for f in strict["flags"]))
         self.assertFalse(any("TOO EASY" in f for f in slack["flags"]))
         self.assertTrue(any("TOO EASY" in w for w in slack["warnings"]))
-        results = [{"seed": i, "result": "win" if i <= 60 else "loss", "turn": 16, "reason": "x"} for i in range(1, 101)]
+        results = [{"seed": i, "result": "win" if i <= hi + 15 else "loss", "turn": 16, "reason": "x"} for i in range(1, 101)]
         far, _ = B._summarize(g, 100, "heuristic", results, stats, B.Counter(), slack=0.1)
         self.assertTrue(any("TOO EASY" in f for f in far["flags"]), "a miss beyond the slack is still a flag")
 
