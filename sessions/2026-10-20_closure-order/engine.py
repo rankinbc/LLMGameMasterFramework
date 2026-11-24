@@ -5,9 +5,9 @@ The rival is a schedule: the Closure Order advances by a hidden repeating patter
 The twist is the lane tide: it flips every few turns and swaps which jumps are cheap.
 """
 
+import os
 import sys
-
-sys.path.insert(0, r"C:\Users\Brian.Rankin\claude-workspace\projects\GM\engine")
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "engine"))
 from gm_base import Game, plural, run  # noqa: E402
 
 

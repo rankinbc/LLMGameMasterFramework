@@ -3,7 +3,7 @@
 Use it after changing gm_base.py or gm_checks.py, to re-validate the saved library, or to audit old engines.
 
     python check_all.py "library/*/engine.py"
-    python check_all.py "output/playtest2*/game_*/engine.py" --full      (slower: full tuning check, not the quick one)
+    python check_all.py "playtests/round2*/game_*/engine.py" --full      (slower: full tuning check, not the quick one)
 """
 
 import glob

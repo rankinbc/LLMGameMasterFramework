@@ -1,7 +1,7 @@
 # python -m ruff check        (from the GM folder; the regression suite does not run it, run it before a commit)
 line-length = 160
 target-version = "py311"
-extend-exclude = ["output", "sessions", "library"]
+extend-exclude = ["playtests", "sessions", "library"]
 
 [lint]
 select = ["E", "F", "W", "B", "UP", "SIM", "PL"]

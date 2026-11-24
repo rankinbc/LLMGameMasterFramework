@@ -31,9 +31,9 @@ from collections import Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 GM_ROOT = os.path.dirname(HERE)
-TRAITS_FILE = os.path.join(GM_ROOT, "traits.json")
-DEFAULT_FILE = os.path.join(GM_ROOT, "fingerprints.jsonl")
-BACKLOG_FILE = os.path.join(GM_ROOT, "variation_backlog.md")
+TRAITS_FILE = os.path.join(GM_ROOT, "data", "traits.json")
+DEFAULT_FILE = os.path.join(GM_ROOT, "data", "fingerprints.jsonl")
+BACKLOG_FILE = os.path.join(GM_ROOT, "data", "variation_backlog.md")
 
 # trait names that are info, not enumerated in traits.json
 EXTRA = {"result": ["win", "loss"]}

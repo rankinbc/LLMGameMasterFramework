@@ -21,19 +21,19 @@ Games are not all adventures. A game can be a kitchen, a hedge fund, a beehive, 
 ## Paths
 
 ```
-GM_ROOT = C:\Users\Brian.Rankin\claude-workspace\projects\GM
-GM_ROOT\taste_profile.md                  what the player enjoys (read before generating)
+GM_ROOT = %USERPROFILE%\claude-workspace\projects\GM
+GM_ROOT\data\taste_profile.md             what the player enjoys (read before generating)
 GM_ROOT\plans\2026-11-06_growth_redesign.md   why v4 looks the way it does
 GM_ROOT\engine\gm_base.py                 the engine contract and runtime (read before writing an engine)
 GM_ROOT\engine\example_belt\engine.py     the v4 reference engine: an economy that grows, a ladder, two paths. Copy its shape, never its content.
 GM_ROOT\engine\example_lantern_chain\engine.py   the old budget-puzzle reference; the regression suite uses it. Do not copy it.
 GM_ROOT\library\<name>\rules.md + engine.py    saved games
 GM_ROOT\sessions\<YYYY-MM-DD>_<slug>\     engine.py, state.json, rolls.log, notes.md for a live game
-GM_ROOT\played_log.md                     one line per game ever played (newest last)
-GM_ROOT\ideas_log.md                      one line per off-menu idea a player tried, and whether a gambit caught it
-GM_ROOT\traits.json                       the trait vocabulary used to fingerprint finished games
-GM_ROOT\fingerprints.jsonl                one fingerprint per finished game (newest last)
-GM_ROOT\variation_backlog.md              traits that stayed the same too long: candidates for new roll axes
+GM_ROOT\data\played_log.md                one line per game ever played (newest last)
+GM_ROOT\data\ideas_log.md                 one line per off-menu idea a player tried, and whether a gambit caught it
+GM_ROOT\data\traits.json                  the trait vocabulary used to fingerprint finished games
+GM_ROOT\data\fingerprints.jsonl           one fingerprint per finished game (newest last)
+GM_ROOT\data\variation_backlog.md         traits that stayed the same too long: candidates for new roll axes
 GM_ROOT\tools\sameness.py                 brief, novelty, verbs, add, report, backlog, phrases
 GM_ROOT\tools\check_all.py                run `check --quick` on many engines (library, old games)
 GM_ROOT\tools\coldread_prompt.md          the cold-read prompt: a fresh agent sees only the opening screen (Step 7)
@@ -83,7 +83,7 @@ Follow all steps in order.
 
 ### Step 1. Read context
 
-Read `GM_ROOT\taste_profile.md`. Read `GM_ROOT\engine\gm_base.py` (the contract) and `GM_ROOT\engine\example_belt\engine.py` (the shape). Read the last 15 lines of `GM_ROOT\played_log.md`. List `GM_ROOT\library`. Run `python GM_ROOT\tools\sameness.py brief` and keep what it prints: every trait it lists as stuck must come out different in this game. If `GM_ROOT\variation_backlog.md` exists, skim it.
+Read `GM_ROOT\data\taste_profile.md`. Read `GM_ROOT\engine\gm_base.py` (the contract) and `GM_ROOT\engine\example_belt\engine.py` (the shape). Read the last 15 lines of `GM_ROOT\data\played_log.md`. List `GM_ROOT\library`. Run `python GM_ROOT\tools\sameness.py brief` and keep what it prints: every trait it lists as stuck must come out different in this game. If `GM_ROOT\data\variation_backlog.md` exists, skim it.
 
 ### Step 2. Roll, do not choose
 
@@ -118,7 +118,7 @@ Invent one signature detail the tables did not give you: a named rival with a re
 
 Decide the rival's tell (shown before the player acts, after, or inferable). Design the finish for the FINISH roll: a photo-finish needs two numbers that converge, a collapse an escalation the player can slow but not stop, a cliff a hard event on a turn the player can plan around, a final-roll one decisive roll whose odds the player bought.
 
-**Gambits (hard limit 11).** Write two or three gambits before any code. Start from what a person in this setting would be itching to try: hit the rival's convoy, jump a claim, corner the market, bribe the inspector, sell the spare engine. Read `GM_ROOT\ideas_log.md`: the refused ideas there are what this player reaches for. For each: the verb as that person says it, what it stakes (a tracked number), the roll and its odds, what it pays, what it costs on a miss, the setting fact that makes it possible. One acts on the rival; name the state key it changes (`RIVAL_KEYS`). A gambit the sheet does not state does not exist.
+**Gambits (hard limit 11).** Write two or three gambits before any code. Start from what a person in this setting would be itching to try: hit the rival's convoy, jump a claim, corner the market, bribe the inspector, sell the spare engine. Read `GM_ROOT\data\ideas_log.md`: the refused ideas there are what this player reaches for. For each: the verb as that person says it, what it stakes (a tracked number), the roll and its odds, what it pays, what it costs on a miss, the setting fact that makes it possible. One acts on the rival; name the state key it changes (`RIVAL_KEYS`). A gambit the sheet does not state does not exist.
 
 **Story (STORY roll).** 1 or 2: lean. 3, cast: decide the roles of four to six named people the engine will roster (`roster(rng, n, family, roles)`), what kind of loss removes one, and the one line the opening screen says about them. 4, saga: the cast plus one want that surfaces by the midpoint, that a move can serve or spend, and that the epilogue settles. Write the cast's roles and the want into `notes.md`.
 
@@ -128,7 +128,7 @@ Decide the rival's tell (shown before the player acts, after, or inferable). Des
 
 Create `GM_ROOT\sessions\<YYYY-MM-DD>_<slug>\engine.py`. Model its shape on `engine\example_belt\engine.py`. It must:
 
-- import `Game, run, plural` from `gm_base` (`sys.path.insert` with the absolute path `GM_ROOT\engine`)
+- import `Game, run, plural` from `gm_base` (`sys.path.insert` with the path to `GM_ROOT\engine` built from `__file__`, two folders up from a session or library game: `os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "engine")`; never a path with a user name in it)
 - put every number the sheet states in `CONSTANTS` and read it as `self.C["KEY"]`, never as a literal. Tuning-only numbers start with `_`
 - write the rulesheet as the `RULES` template with `{KEY}` placeholders, 8 lines max, about 40 words a line (45 is a hard limit). Write `{KEY|noun}` to pluralize a constant. Never type a number into RULES by hand
 - write every count that appears in text with `plural(n, "ship")`. Every number in the logic comes from `CONSTANTS`; `# lit-ok` on a line says a number is structural
@@ -231,10 +231,10 @@ On `status`, `board` or `rules`, run the matching engine command without advanci
 
 1. Print the result and the final numbers from the engine. Then run `python engine.py autopsy` and write a short autopsy in plain prose, four lines at most, from its numbers only: the turn where the game was decided, the best move the player missed if `top_regrets` has one (kindly, with the numbers, as "if you had played on sensibly afterward"), a flat stretch if `flags` names one, and how many turns were real dilemmas. Do not invent numbers.
 1a. With a cast (STORY 3 or 4), two lines of epilogue from `visible.cast`.
-1b. Log the player's ideas. For every off-menu thing the player tried, append one line to `GM_ROOT\ideas_log.md`: `YYYY-MM-DD | <title> | <the idea in the player's words, short> | caught by <gambit id> / refused`.
-2. Append one line to `GM_ROOT\played_log.md`:
+1b. Log the player's ideas. For every off-menu thing the player tried, append one line to `GM_ROOT\data\ideas_log.md`: `YYYY-MM-DD | <title> | <the idea in the player's words, short> | caught by <gambit id> / refused`.
+2. Append one line to `GM_ROOT\data\played_log.md`:
    `YYYY-MM-DD | <title> | ENGINE=<n> GROWTH=<n> PRESSURE=<n> PATHS=<n> SET=<n> TWIST=<n> | actions=<comma list of action ids> | <win/loss> | <turns played>`
-3. Record the fingerprint, silently. Run `python engine.py fingerprint` for the mechanical fields. Build one JSON object with `id`, `title`, `date`, `result`, `turns`, `turn_budget`, `actions`, `rolls` (every rolled value, null where not rolled), `traits` (one value for every trait in `GM_ROOT\traits.json`, judged from what happened: `skeleton` is the shape the game really had, `growth_kind` what really grew) and `primary_number`. Run `python GM_ROOT\tools\sameness.py add '<json>'`, then `python GM_ROOT\tools\sameness.py backlog`. If it rejects a value, fix the value.
+3. Record the fingerprint, silently. Run `python engine.py fingerprint` for the mechanical fields. Build one JSON object with `id`, `title`, `date`, `result`, `turns`, `turn_budget`, `actions`, `rolls` (every rolled value, null where not rolled), `traits` (one value for every trait in `GM_ROOT\data\traits.json`, judged from what happened: `skeleton` is the shape the game really had, `growth_kind` what really grew) and `primary_number`. Run `python GM_ROOT\tools\sameness.py add '<json>'`, then `python GM_ROOT\tools\sameness.py backlog`. If it rejects a value, fix the value.
 4. Ask: `Save this one to the library? Give it a name, or say no.`
 
 On save: run `python engine.py check` once more and save only if it has no flags. Create `GM_ROOT\library\<name>\`, copy `engine.py` into it, and write `rules.md` containing title, premise, rulesheet, rolls, the growth card, win and lose conditions, signature detail, and what the seed changes.

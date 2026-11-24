@@ -9,9 +9,9 @@ the old crew can raise the mast once. Win: a sturdy Grand Tree at dusk.
 Rulesheet: run `python engine.py rules`.
 """
 
+import os
 import sys
-
-sys.path.insert(0, r"C:\Users\Brian.Rankin\claude-workspace\projects\GM\engine")
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "engine"))
 from gm_base import Game, plural, run  # noqa: E402,F401
 
 NAME = {1: "Plank", 2: "Shelf", 3: "Ladder", 4: "Tower", 5: "Grand Tree"}

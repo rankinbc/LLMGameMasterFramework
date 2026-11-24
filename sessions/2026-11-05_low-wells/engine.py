@@ -8,7 +8,7 @@ import functools
 import os
 import sys
 
-sys.path.insert(0, r"C:\Users\Brian.Rankin\claude-workspace\projects\GM\engine")
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "engine"))
 from gm_base import Game, plural, run  # noqa: E402
 
 ISLES = ["Hollin", "Brae", "Saltmarch"]

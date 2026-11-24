@@ -16,11 +16,13 @@ T7 | Fleet 3 v Kessler 4 | Credits 44 | Ore 8 | Price 2 a ton
 
 That is turn 7 of Belt Claim, the reference game: you run a two-sloop mining outfit against a rival whose fleet grows on a schedule, and you have 32 turns to out-build or out-raid him before the survey closes.
 
-## The idea
+## What it is
 
-Language models are good game masters until a number is involved. They forget the gold count, fudge the die, let the rival cheat, and quietly bend a rule to keep the story moving. A game with stakes cannot survive that.
+A Claude Code skill and a Python framework that generate, test and run text games.
 
-So the work is split, and the split is strict:
+Each `/play` produces a new game in two parts: a Python engine that holds the state, the dice and the rules, and a model that narrates what the engine reports. The framework supplies the engine base class, a command line for playing a game, and a test harness that every generated game must pass before it is played.
+
+The two parts have fixed jobs:
 
 | The engine owns | The model owns |
 |-----------------|----------------|
@@ -33,7 +35,7 @@ The model never changes a number the engine did not print. Each turn it runs `py
 
 ## What a `/play` does
 
-1. **Reads the player.** `taste_profile.md` distills eleven favorite games (Counter-Strike 1.6, StarCraft, Warcraft II, Cities: Skylines, Escape Velocity and others) into the mechanics they share: economies that snowball, deposits that run out, ladders to climb, more than one way to win.
+1. **Reads the player.** `data/taste_profile.md` distills eleven favorite games (Counter-Strike 1.6, StarCraft, Warcraft II, Cities: Skylines, Escape Velocity and others) into the mechanics they share: economies that snowball, deposits that run out, ladders to climb, more than one way to win.
 2. **Rolls, does not choose.** Fourteen dice pick the economy, what grows, what pushes back, the two winning paths, the setting, the role, the clock, a twist, the win, the map, the tone, the length, the finish and how much story the game carries. A game can be a kitchen, a hedge fund, a beehive or an election.
 3. **Checks for novelty.** A sameness detector compares the rolls and the verbs with every earlier game and names what to reroll.
 4. **Writes an engine.** One Python file on top of `engine/gm_base.py`, declaring its constants, rules, actions, economy, ladder, paths and gambits.
@@ -100,9 +102,9 @@ A flag blocks the game. A warning is read and judged; the one above is accepted 
 
 ## It learns what it keeps repeating
 
-`tools/sameness.py` fingerprints every finished game against a trait vocabulary (`traits.json`) and looks for streaks. A trait that stays the same too long lands in `variation_backlog.md`, either as a candidate for a new roll axis or as a roll the generator keeps bending back into the same shape. The next `/play` reads the brief and must come out different on every stuck trait.
+`tools/sameness.py` fingerprints every finished game against a trait vocabulary (`data/traits.json`) and looks for streaks. A trait that stays the same too long lands in `data/variation_backlog.md`, either as a candidate for a new roll axis or as a roll the generator keeps bending back into the same shape. The next `/play` reads the brief and must come out different on every stuck trait.
 
-`ideas_log.md` does the same for the player. Every off-menu idea tried in play is logged with whether the game could answer it ("hunt Vass and assassinate him: refused"). Refusals become the gambits of later games.
+`data/ideas_log.md` does the same for the player. Every off-menu idea tried in play is logged with whether the game could answer it ("hunt Vass and assassinate him: refused"). Refusals become the gambits of later games.
 
 ## Try the reference game
 
@@ -137,7 +139,6 @@ More commands, for tuning and analysis:
 | Path | Purpose |
 |------|---------|
 | `skill/play/SKILL.md` | The `/play` skill: roll tables, hard limits, the generation procedure |
-| `taste_profile.md` | What the player enjoys; the generator reads it first |
 | `engine/gm_base.py` | The engine contract and CLI runtime; every game subclasses `Game` |
 | `engine/gm_checks.py` | The universal bug checks and the rule-test harness |
 | `engine/gm_cast.py` | A named cast the engine owns, so "who died" has one true answer |
@@ -145,9 +146,10 @@ More commands, for tuning and analysis:
 | `engine/example_belt/` | The v4 reference game |
 | `tools/` | The sameness detector, the batch checker, the cold-read and review prompts |
 | `tests/` | The regression suite for the harness |
-| `sessions/` | Games in play or played: engine, state, roll log, notes |
+| `data/` | The taste profile, the trait vocabulary, and the record of every game: played log, fingerprints, ideas log, variation backlog |
+| `sessions/` | Games played in chat: the engine and the design notes for each |
+| `playtests/` | Five rounds of automated self-play: a report per round, and per game a transcript, a summary and (from round 2) the engine |
 | `library/` | Saved games, replayable with a fresh seed |
-| `played_log.md`, `fingerprints.jsonl` | The record of every game |
 | `plans/` | Design plans, newest first |
 
 ## Development

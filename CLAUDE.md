@@ -8,7 +8,7 @@ v4 (2026-11-07): every game must grow. An engine declares `GROWTH`, `ECONOMY`, `
 
 | Path | Purpose |
 |------|---------|
-| `taste_profile.md` | What the player enjoys, distilled from `../GameAnalysis2`. Generator reads it first. |
+| `data/taste_profile.md` | What the player enjoys, distilled from an analysis of eleven favorite games. Generator reads it first. |
 | `engine/gm_base.py` | Engine contract and CLI runtime. Every game engine subclasses `Game` and calls `run`. |
 | `engine/gm_checks.py` | Universal bug checks (JSON round trip, text and plural lint, gates, reach, check_end at the budget, fuzz, determinism) and the rule-test harness `T`. |
 | `engine/gm_cast.py` | A named cast the engine owns (`roster`, `fall`, `fallen_text`) for games whose STORY roll is 3 or 4, so "who died" has one true answer. |
@@ -18,15 +18,16 @@ v4 (2026-11-07): every game must grow. An engine declares `GROWTH`, `ECONOMY`, `
 | `plans/` | Design plans, newest first. |
 | `library/<name>/` | Saved games: `rules.md` plus `engine.py`. `/play <name>` reruns one with a fresh seed. |
 | `sessions/<date>_<slug>/` | A live game: `engine.py`, `state.json`, `rolls.log`, `notes.md`. `/play resume` picks up the newest. |
-| `played_log.md` | One line per finished game with rolls and action ids. Used for the novelty check. |
-| `ideas_log.md` | One line per off-menu idea a player tried in play, and whether a gambit caught it. Step 4 reads it when writing gambits. |
-| `traits.json`, `fingerprints.jsonl`, `variation_backlog.md` | Trait vocabulary, one fingerprint per finished game, and the traits that stayed the same too long (candidates for new roll axes). |
+| `data/played_log.md` | One line per finished game with rolls and action ids. Used for the novelty check. |
+| `data/ideas_log.md` | One line per off-menu idea a player tried in play, and whether a gambit caught it. Step 4 reads it when writing gambits. |
+| `data/traits.json`, `data/fingerprints.jsonl`, `data/variation_backlog.md` | Trait vocabulary, one fingerprint per finished game, and the traits that stayed the same too long (candidates for new roll axes). |
+| `data/fingerprint_backfill_2026-10-14/` | The raw fingerprints the first two playtest rounds were backfilled from. |
 | `tools/sameness.py` | `brief`, `novelty`, `verbs`, `add`, `report`, `backlog`, `phrases`. Finds repetition across games and runs the novelty check. |
 | `tools/check_all.py` | Runs `check --quick` over many engines (the library, old games). |
 | `tools/qa_prompt.md` | The independent-review prompt: a fresh agent plays a new game three times, sends bad input and compares the sheet with the code. Step 7 of the skill uses it. |
 | `tools/coldread_prompt.md` | The cold-read prompt: a fresh agent sees only the opening screen and says what it thinks the game is, what each action physically is (NONSENSE if it cannot be), its first move and whether it would keep playing. Step 7 (4a) uses it, before the QA review. |
 | `tests/` | Regression suite for the harness: unit tests plus one mutant engine per bug class, each of which must be caught. |
-| `output/playtest_<date>/` | Playtest transcripts, summaries and the analysis report. |
+| `playtests/round<n>_<date>/` | Playtest rounds: one report per round, and per game the engine, the transcript and a summary. |
 
 ## Engine CLI
 
